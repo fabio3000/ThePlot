@@ -20,20 +20,16 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // 🛑 DEINE DATENBANK-DATEN HIER EINTRAGEN 🛑
-        // ==========================================
-        // Gehe auf firebase.google.com -> Console -> Projekt erstellen -> Web-App hinzufügen.
-        // Kopiere die Werte aus dem "firebaseConfig" Block hier hinein:
-        const firebaseConfig = {
-            apiKey: "DEIN_API_KEY_HIER",
-            authDomain: "dein-projekt.firebaseapp.com",
-            projectId: "dein-projekt-id",
-            storageBucket: "dein-projekt.firebasestorage.app",
-            messagingSenderId: "123456789",
-            appId: "1:12345:web:abcde"
-        };
-        // ==========================================
+     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDzN7StXcxZVkYcs3pQBh1rAYypqKF54PE",
+  authDomain: "equimatch-a9a03.firebaseapp.com",
+  projectId: "equimatch-a9a03",
+  storageBucket: "equimatch-a9a03.firebasestorage.app",
+  messagingSenderId: "1064864391538",
+  appId: "1:1064864391538:web:ceeca48c28a9e7a63f3deb",
+  measurementId: "G-8RGBYGNGED"
+};
 
         let appInit, auth, db;
         let state = { user: null, view: 'loading', role: null, profile: null, talents: [], companies: [], applications: [] };
