@@ -3,74 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EquiMatch | Wahres Potenzial erkennen</title>
+    <title>The Plot | Your life is a movie.</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.paypal.com/sdk/js?client-id=AdWPwOjuX1h1gYLtvpb63&currency=EUR"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .chat-scroll::-webkit-scrollbar { width: 6px; }
-        .chat-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #09090b; 
+            color: #f4f4f5; 
+            background-image: radial-gradient(circle at 50% 0%, #27272a 0%, #09090b 70%);
+            min-height: 100vh;
+        }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        .film-grain {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 50; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        .gold-text { background: linear-gradient(to right, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .ticket-cutout {
+            mask-image: radial-gradient(circle at 0 50%, transparent 10px, black 11px), radial-gradient(circle at 100% 50%, transparent 10px, black 11px);
+            mask-size: 51% 100%; mask-repeat: no-repeat; mask-position: left, right;
+        }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-thumb { background-color: #3f3f46; border-radius: 10px; }
+        .blur-reveal { filter: blur(5px); transition: filter 0.5s ease; cursor: pointer; }
+        .blur-reveal:hover { filter: blur(0px); }
     </style>
-    <!-- NEU: Fängt "stumme" Fehler ab und zeigt sie an -->
     <script>
         window.addEventListener('error', function(e) {
             const app = document.getElementById('app');
-            if (app && app.innerHTML.includes('Lade')) {
-                app.innerHTML = `
-                    <div class="max-w-2xl mx-auto mt-20 p-8 bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-lg">
-                        <h2 class="text-2xl font-bold mb-4">Kritischer Ladefehler</h2>
-                        <p class="font-mono bg-white p-3 rounded border border-red-100 mb-4 text-sm">${e.message || "Skript konnte nicht geladen werden."}</p>
-                        <h3 class="font-bold mb-2">Wie du das behebst:</h3>
-                        <ul class="list-disc pl-5 space-y-2 text-sm">
-                            <li>Lade die Datei auf <b>GitHub Pages</b> hoch (lokales Öffnen mit <code class="bg-red-100 px-1 rounded">file:///</code> blockiert die Datenbank).</li>
-                            <li>Deaktiviere testweise deinen <b>Adblocker</b> (manche blockieren Firebase).</li>
-                            <li>Prüfe deine Internetverbindung.</li>
-                        </ul>
-                    </div>
-                `;
+            if (app && app.innerHTML.includes('Loading')) {
+                app.innerHTML = `<div class="max-w-lg mx-auto mt-20 p-8 bg-zinc-900 border border-red-500/50 text-red-200 rounded-2xl text-center z-50 relative"><h2 class="text-2xl font-bold mb-4 serif">Verbindung blockiert</h2><p class="text-sm">Bitte öffne die Seite über https://... auf GitHub Pages.</p></div>`;
             }
         }, true);
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="flex flex-col relative overflow-x-hidden">
+    <div class="film-grain"></div>
 
-    <div id="app" class="pb-12">
-        <div class="text-center mt-32 flex flex-col items-center">
-            <svg class="w-12 h-12 text-teal-600 animate-spin mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <div class="text-xl text-teal-700 font-bold">Lade sichere Umgebung...</div>
+    <div id="app" class="flex-1 flex flex-col pb-12 z-10 relative">
+        <div class="text-center mt-40 flex flex-col items-center">
+            <div class="w-16 h-16 border-t-2 border-l-2 border-amber-500 rounded-full animate-spin mb-6"></div>
+            <div class="text-2xl serif italic text-zinc-400">Loading your scene...</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // DATENBANK VERBINDUNG
         const firebaseConfig = {
           apiKey: "AIzaSyDzN7StXcxZVkYcs3pQBh1rAYypqKF54PE",
           authDomain: "equimatch-a9a03.firebaseapp.com",
           projectId: "equimatch-a9a03",
           storageBucket: "equimatch-a9a03.firebasestorage.app",
           messagingSenderId: "1064864391538",
-          appId: "1:1064864391538:web:ceeca48c28a9e7a63f3deb",
-          measurementId: "G-8RGBYGNGED"
+          appId: "1:1064864391538:web:ceeca48c28a9e7a63f3deb"
         };
 
         let appInit, auth, db;
+        const ALIASES = ["The Writer", "The Observer", "The Wanderer", "The Musician", "The Stranger"];
+
         let state = { 
-            user: null, view: 'loading', role: null, profile: null, 
-            talents: [], companies: [], applications: [], messages: [], 
-            applyingTo: null, activeChatAppId: null, showVerifyModal: false, verifyStep: 0, 
-            errorMsg: null, showPaywall: false, authMode: 'login'
+            user: null, view: 'loading', profile: null, 
+            currentDrop: null, // Wird jetzt aus der DB geladen
+            hasTicket: false, messages: [], errorMsg: null, 
+            authMode: 'login', logoClicks: 0
         };
 
         const appDiv = document.getElementById('app');
 
-        // Failsafe: Wenn nach 5 Sekunden immer noch geladen wird
         setTimeout(() => {
-            if (state.view === 'loading') {
-                appDiv.innerHTML = `<div class="max-w-2xl mx-auto mt-20 p-8 bg-orange-50 text-orange-800 rounded-xl font-bold border border-orange-200">Ladezeit überschritten. Bitte prüfe deine Internetverbindung oder lade die Seite neu. Achte darauf, dass du die Seite über GitHub (https://...) und nicht lokal öffnest.</div>`;
-            }
+            if (state.view === 'loading') appDiv.innerHTML = `<div class="text-center mt-20 text-red-500">Netzwerkfehler. Bitte lade die Seite neu.</div>`;
         }, 5000);
 
         try {
@@ -78,50 +86,68 @@
             auth = getAuth(appInit);
             db = getFirestore(appInit);
             
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 state.user = user;
-                if (user) loadData();
-                else { state.view = 'auth'; render(); }
+                if (user) {
+                    // 1. Profil laden
+                    onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
+                        if (docSnap.exists()) {
+                            state.profile = docSnap.data();
+                        } else {
+                            state.profile = { hasPremium: false, tickets: [], alias: ALIASES[Math.floor(Math.random()*ALIASES.length)], isAdmin: false };
+                            setDoc(doc(db, 'plot_users', user.uid), state.profile);
+                        }
+                        checkRouting();
+                    });
+
+                    // 2. Aktuellen Drop live aus der Datenbank laden
+                    onSnapshot(collection(db, 'plot_drops'), (snap) => {
+                        const drops = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                        state.currentDrop = drops.find(d => d.isActive) || null;
+                        
+                        if(state.currentDrop) {
+                            state.hasTicket = state.profile?.tickets && state.profile?.tickets.includes(state.currentDrop.id);
+                            
+                            // Chat laden
+                            onSnapshot(collection(db, `plot_messages_${state.currentDrop.id}`), (msgSnap) => {
+                                state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
+                                if(state.view === 'room') { render(); scrollToBottom(); }
+                            });
+                        }
+                        checkRouting();
+                    });
+
+                } else {
+                    state.view = 'auth'; render();
+                }
             });
-
         } catch(error) {
-            appDiv.innerHTML = `<div class="max-w-2xl mx-auto mt-20 p-8 bg-red-50 text-red-700 rounded-xl font-bold">Firebase Fehler: ${error.message}</div>`;
+            appDiv.innerHTML = `<div class="max-w-2xl mx-auto mt-20 p-8 bg-red-900/30 border border-red-500 text-red-200 rounded-xl">Firebase Fehler: ${error.message}</div>`;
         }
 
-        function loadData() {
-            try {
-                onSnapshot(collection(db, 'talents'), (snap) => {
-                    state.talents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    checkProfile(); render();
-                });
-                onSnapshot(collection(db, 'companies'), (snap) => {
-                    state.companies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    checkProfile(); render();
-                });
-                onSnapshot(collection(db, 'applications'), (snap) => {
-                    state.applications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    render();
-                });
-                onSnapshot(collection(db, 'messages'), (snap) => {
-                    state.messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    if (state.activeChatAppId) render();
-                });
-            } catch(e) { console.error(e); }
+        function checkRouting() {
+            if (!state.user || !state.profile) return;
+            if (state.profile.isAdmin && state.view !== 'admin') {
+                state.view = 'admin';
+            } else if (!state.profile.isAdmin) {
+                if(!state.currentDrop) state.view = 'nodrop';
+                else if(state.view === 'loading' || state.view === 'auth' || state.view === 'nodrop') {
+                    state.view = state.hasTicket ? 'ticket' : 'home';
+                }
+            }
+            render();
         }
 
-        function checkProfile() {
-            if (!state.user) return;
-            const myTalent = state.talents.find(t => t.uid === state.user.uid);
-            const myCompany = state.companies.find(c => c.uid === state.user.uid);
-            if (myTalent) { state.profile = myTalent; state.role = 'talent'; state.view = 'dashboard'; }
-            else if (myCompany) { state.profile = myCompany; state.role = 'company'; state.view = 'dashboard'; }
-            else if (state.view === 'loading') { state.view = 'role_select'; }
+        function scrollToBottom() {
+            setTimeout(() => {
+                const chatBox = document.getElementById('chat_messages');
+                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+            }, 50);
         }
 
         // --- AUTH & NAVIGATION ---
         window.setView = (view) => { state.errorMsg = null; state.view = view; render(); };
         window.toggleAuthMode = () => { state.authMode = state.authMode === 'login' ? 'register' : 'login'; state.errorMsg = null; render(); };
-        
         window.handleAuth = async (e) => {
             e.preventDefault();
             const email = document.getElementById('auth_email').value;
@@ -129,321 +155,330 @@
             try {
                 if (state.authMode === 'login') await signInWithEmailAndPassword(auth, email, pass);
                 else await createUserWithEmailAndPassword(auth, email, pass);
-            } catch (err) {
-                state.errorMsg = "Authentifizierungs-Fehler: " + err.message; render();
+            } catch (err) { state.errorMsg = err.message; render(); }
+        };
+        window.handleLogout = () => { signOut(auth); };
+
+        // --- ADMIN LOGIN (SECRET CLICK) ---
+        window.handleLogoClick = async () => {
+            state.logoClicks++;
+            if (state.logoClicks === 5) {
+                state.logoClicks = 0;
+                const pwd = prompt("Director's Password:");
+                if (pwd === "director2026") {
+                    await setDoc(doc(db, 'plot_users', state.user.uid), { isAdmin: true }, { merge: true });
+                    alert("Admin Access Granted.");
+                }
             }
         };
 
-        window.handleLogout = () => { signOut(auth); };
+        // --- ADMIN FUNKTIONEN ---
+        window.createDrop = async (e) => {
+            e.preventDefault();
+            if(!state.profile.isAdmin) return;
+            
+            // Erst alle alten auf inaktiv setzen
+            const snap = await getDocs(collection(db, 'plot_drops'));
+            snap.forEach(async (d) => { await updateDoc(d.ref, { isActive: false }); });
 
-        // --- PROFILE SPEICHERN ---
-        window.saveTalent = async () => {
-            if (!state.user) return;
-            try {
-                const data = {
-                    uid: state.user.uid,
-                    superpower: document.getElementById('t_superpower').value,
-                    background: document.getElementById('t_background').value,
-                    skills: document.getElementById('t_skills').value,
-                    health: document.getElementById('t_health').value,
-                    about: document.getElementById('t_about').value,
-                    redFlags: document.getElementById('t_redflags').value,
-                    verified: state.profile?.verified || false
-                };
-                if(!data.superpower || !data.background) throw new Error("Bitte fülle die Hauptfelder aus.");
-                await setDoc(doc(db, 'talents', state.user.uid), data);
-            } catch (error) { state.errorMsg = error.message; render(); }
+            const questsArray = document.getElementById('admin_quests').value.split('\n').filter(q => q.trim() !== '');
+
+            const newDrop = {
+                id: 'drop_' + Date.now(),
+                title: document.getElementById('admin_title').value,
+                vibe: document.getElementById('admin_vibe').value,
+                blurLocation: document.getElementById('admin_blurloc').value,
+                exactLocation: document.getElementById('admin_exactloc').value,
+                timeText: document.getElementById('admin_time').value,
+                spotsLeft: parseInt(document.getElementById('admin_spots').value),
+                prop: document.getElementById('admin_prop').value,
+                secretDrink: document.getElementById('admin_drink').value,
+                quests: questsArray,
+                isActive: true,
+                phase: 'lobby', // lobby, live, credits
+                activeQuestIndex: 0
+            };
+
+            await setDoc(doc(db, 'plot_drops', newDrop.id), newDrop);
+            alert("Neues Ticket / Szene live geschaltet!");
         };
 
-        window.saveCompany = async () => {
-            if (!state.user) return;
-            try {
-                const data = {
-                    uid: state.user.uid,
-                    name: document.getElementById('c_name').value,
-                    culture: document.getElementById('c_culture').value,
-                    openness: document.getElementById('c_openness').value,
-                    perks: document.getElementById('c_perks').value,
-                    credits: state.profile?.credits ?? 3
-                };
-                await setDoc(doc(db, 'companies', state.user.uid), data);
-            } catch (error) { state.errorMsg = error.message; render(); }
+        window.setPhaseLive = async (phase) => {
+            if(!state.profile.isAdmin || !state.currentDrop) return;
+            await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: phase });
         };
 
-        // --- FEATURES ---
-        window.openVerifyModal = () => { state.showVerifyModal = true; state.verifyStep = 0; render(); };
-        window.closeVerifyModal = () => { state.showVerifyModal = false; render(); };
-        
-        window.runVerification = () => {
-            const link = document.getElementById('v_link').value;
-            if (!link) { alert("Bitte gib einen Link ein."); return; }
-            state.verifyStep = 1; render();
-            setTimeout(() => { state.verifyStep = 2; render(); }, 2000);
-            setTimeout(async () => {
-                await setDoc(doc(db, 'talents', state.user.uid), { verified: true }, { merge: true });
-                state.showVerifyModal = false;
-                alert("Erfolgreich! Deine Fähigkeiten wurden geprüft.");
-                render();
-            }, 4500);
+        window.nextQuestLive = async () => {
+            if(!state.profile.isAdmin || !state.currentDrop) return;
+            const nextIdx = state.currentDrop.activeQuestIndex + 1;
+            if(nextIdx < state.currentDrop.quests.length) {
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { activeQuestIndex: nextIdx });
+            }
         };
 
-        window.openChat = (appId) => {
-            state.activeChatAppId = appId; render();
-            setTimeout(() => {
-                const chatBox = document.getElementById('chat_messages');
-                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-            }, 100);
+        // --- USER FUNKTIONEN ---
+        window.claimTicket = async () => {
+            if (!state.profile.hasPremium) {
+                state.view = 'paywall'; render();
+                setTimeout(() => {
+                    if (window.paypal) {
+                        document.getElementById('paypal-button-container').innerHTML = '';
+                        paypal.Buttons({
+                            createOrder: (data, actions) => actions.order.create({ purchase_units: [{ description: "The Plot Premium", amount: { currency_code: "EUR", value: "49.00" } }] }),
+                            onApprove: (data, actions) => actions.order.capture().then((details) => window.unlockPremium())
+                        }).render('#paypal-button-container');
+                    } else {
+                        document.getElementById('paypal-button-container').innerHTML = `<button onclick="window.unlockPremium()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(217,119,6,0.4)]">[Demo] Freischalten</button>`;
+                    }
+                }, 100);
+            } else {
+                const newTickets = [...(state.profile.tickets || []), state.currentDrop.id];
+                await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
+                // Verringere Spots
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { spotsLeft: Math.max(0, state.currentDrop.spotsLeft - 1) });
+                state.hasTicket = true; state.view = 'ticket'; render();
+            }
         };
-        
-        window.closeChat = () => { state.activeChatAppId = null; render(); };
-        
+
+        window.unlockPremium = async () => {
+            await setDoc(doc(db, 'plot_users', state.user.uid), { hasPremium: true }, { merge: true });
+            state.view = 'home'; render(); alert("Director's Cut unlocked.");
+        };
+
         window.sendMessage = async () => {
-            if (!state.user || !state.activeChatAppId) return;
             const input = document.getElementById('chat_input');
             const text = input.value.trim();
-            if (!text) return;
-            
+            if (!text || !state.currentDrop) return;
             try {
-                await addDoc(collection(db, 'messages'), {
-                    applicationId: state.activeChatAppId,
-                    senderId: state.user.uid,
-                    senderName: state.profile?.name || state.profile?.superpower || 'User',
-                    text: text,
-                    timestamp: Date.now()
+                await addDoc(collection(db, `plot_messages_${state.currentDrop.id}`), {
+                    senderId: state.user.uid, senderAlias: state.profile.alias || 'Stranger', text: text, timestamp: Date.now()
                 });
-                input.value = '';
-                setTimeout(() => {
-                    const chatBox = document.getElementById('chat_messages');
-                    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-                }, 100);
-            } catch (e) { alert("Fehler beim Senden."); }
+                input.value = ''; scrollToBottom();
+            } catch (e) { console.error(e); }
         };
 
-        window.openPaywall = () => {
-            state.showPaywall = true; render();
-            setTimeout(() => {
-                if (window.paypal) {
-                    document.getElementById('paypal-button-container').innerHTML = '';
-                    paypal.Buttons({
-                        createOrder: (data, actions) => actions.order.create({ purchase_units: [{ description: "EquiMatch Premium", amount: { currency_code: "EUR", value: "99.00" } }] }),
-                        onApprove: (data, actions) => actions.order.capture().then((details) => window.completePremiumPurchase(details.payer.name.given_name)),
-                        onError: (err) => { state.errorMsg = "PayPal Fehler: " + err; render(); }
-                    }).render('#paypal-button-container');
-                }
-            }, 100);
+        window.submitCredits = () => {
+            alert("Deine Auswahl wurde anonym gespeichert. Falls es ein Match gibt, wird der Chat für euch freigeschaltet!");
+            window.setView('ticket');
         };
 
-        window.completePremiumPurchase = async (payerName) => {
-            await setDoc(doc(db, 'companies', state.user.uid), { credits: 999 }, { merge: true });
-            state.showPaywall = false;
-            alert("Zahlung erfolgreich. Premium aktiviert!"); render();
-        };
-
-        window.openApplyModal = (talentId) => {
-            if ((state.profile?.credits || 0) <= 0) { window.openPaywall(); return; }
-            state.applyingTo = talentId; state.errorMsg = null; render();
-        };
-
-        window.closeApplyModal = () => { state.applyingTo = null; state.showPaywall = false; state.errorMsg = null; render(); };
-
-        window.submitApplication = async () => {
-            const msg = document.getElementById('apply_message').value;
-            if (!msg) { state.errorMsg = "Nachricht fehlt."; render(); return; }
-            try {
-                document.getElementById('apply_btn').innerText = "Sende...";
-                await addDoc(collection(db, 'applications'), { companyId: state.user.uid, companyName: state.profile?.name || "Firma", talentId: state.applyingTo, message: msg, status: 'pending' });
-                await setDoc(doc(db, 'companies', state.user.uid), { credits: (state.profile?.credits || 1) - 1 }, { merge: true });
-                state.applyingTo = null; state.errorMsg = null; render();
-            } catch (error) { state.errorMsg = error.message; render(); }
-        };
 
         // --- UI RENDERER ---
         function render() {
-            try {
-                if (state.view === 'loading') return;
+            if (state.view === 'loading') return;
 
-                let html = `
-                    <nav class="bg-white p-4 shadow-sm flex justify-between items-center mb-8 border-b border-teal-100 sticky top-0 z-10">
-                        <div class="text-xl font-bold text-teal-700 flex items-center gap-2">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                            EquiMatch
+            let html = `
+                <nav class="p-6 flex justify-between items-center max-w-5xl mx-auto w-full z-20">
+                    <div onclick="window.handleLogoClick()" class="text-2xl font-black tracking-tighter serif italic text-zinc-100 cursor-pointer select-none">The Plot.</div>
+                    <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold flex items-center gap-4">
+                        ${state.profile?.isAdmin ? "<span class='text-red-500'>Director</span>" : state.profile?.hasPremium ? "<span class='text-amber-500'>Director's Cut</span>" : ""}
+                        ${state.user ? `<button onclick="window.handleLogout()" class="hover:text-white transition">Exit</button>` : ''}
+                    </div>
+                </nav>
+                <div class="max-w-lg mx-auto px-4 w-full flex-1 flex flex-col justify-center z-20">
+            `;
+
+            if (state.errorMsg) html += `<div class="bg-red-900/30 border border-red-500/50 text-red-200 p-4 rounded-lg mb-6 text-sm">${state.errorMsg}</div>`;
+
+            // --- ADMIN DASHBOARD ---
+            if (state.view === 'admin') {
+                html += `
+                    <div class="mb-8">
+                        <h1 class="text-3xl serif italic mb-2 text-red-500">Director's Dashboard</h1>
+                        <p class="text-zinc-400 text-sm">Erschaffe Szenen. Kontrolliere das Pacing.</p>
+                    </div>
+
+                    ${state.currentDrop ? `
+                        <div class="bg-red-900/20 border border-red-500/30 p-6 rounded-2xl mb-8">
+                            <h3 class="font-bold text-white mb-4">Live-Kontrolle: ${state.currentDrop.title}</h3>
+                            <div class="flex gap-2 mb-4">
+                                <button onclick="window.setPhaseLive('lobby')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'lobby' ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400'}">1. Lobby</button>
+                                <button onclick="window.setPhaseLive('live')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'live' ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400'}">2. Live Date</button>
+                                <button onclick="window.setPhaseLive('credits')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'credits' ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400'}">3. Credits</button>
+                            </div>
+                            ${state.currentDrop.phase === 'live' ? `
+                                <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-700">
+                                    <p class="text-xs text-amber-500 mb-2 font-bold uppercase">Aktuelle Quest auf allen Handys:</p>
+                                    <p class="text-sm italic mb-4">"${state.currentDrop.quests[state.currentDrop.activeQuestIndex]}"</p>
+                                    <button onclick="window.nextQuestLive()" class="w-full bg-amber-600 text-white py-2 rounded text-xs font-bold uppercase">Nächste Quest triggern</button>
+                                </div>
+                            ` : ''}
                         </div>
-                        <div class="text-sm font-medium text-slate-600 flex items-center gap-4">
-                            ${state.role === 'company' ? `<span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-xs font-bold">Credits: ${(state.profile?.credits || 0) > 100 ? '∞' : (state.profile?.credits || 0)}</span>` : ''}
-                            ${state.user ? `<span>Eingeloggt als ${state.user.email}</span> <button onclick="window.handleLogout()" class="text-xs text-red-500 hover:underline">Logout</button>` : ''}
-                        </div>
-                    </nav>
-                    <div class="max-w-5xl mx-auto px-4">
+                    ` : ''}
+
+                    <div class="bg-zinc-900/80 p-8 rounded-3xl border border-zinc-800">
+                        <h2 class="text-xl serif italic mb-6">Neue Szene (Drop) erschaffen</h2>
+                        <form onsubmit="window.createDrop(event)" class="space-y-4 text-sm">
+                            <input id="admin_title" required placeholder="Titel (z.B. Midnight Matcha)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            <textarea id="admin_vibe" required placeholder="Vibe (Atmosphäre beschreiben)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500 h-20"></textarea>
+                            <input id="admin_blurloc" required placeholder="Verschwommene Location (z.B. Café, Belgisches Viertel)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            <input id="admin_exactloc" required placeholder="Genaue Adresse & Tisch" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            <div class="flex gap-2">
+                                <input id="admin_time" required placeholder="Zeit (z.B. Heute, 20 Uhr)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                <input id="admin_spots" type="number" required placeholder="Plätze (z.B. 4)" class="w-32 p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            </div>
+                            <input id="admin_prop" required placeholder="Requisite (z.B. Bring ein Buch mit)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            <input id="admin_drink" required placeholder="Geheimpasswort / Drink" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                            <div>
+                                <label class="text-xs text-zinc-500 block mb-1">Side Quests (1 pro Zeile, Icebreaker ganz oben)</label>
+                                <textarea id="admin_quests" required class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500 h-32"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-white text-black font-bold py-3 rounded mt-4">Drop veröffentlichen</button>
+                        </form>
+                    </div>
                 `;
-
-                if (state.errorMsg) {
-                    html += `<div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm mb-6 font-medium">${state.errorMsg}</div>`;
-                }
-
-                if (state.view === 'auth') {
-                    html += `
-                        <div class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl mt-10">
-                            <div class="text-center mb-8">
-                                <h2 class="text-3xl font-bold text-slate-800">${state.authMode === 'login' ? 'Willkommen zurück' : 'Account erstellen'}</h2>
-                                <p class="text-slate-500 mt-2">Der Jobmarkt für wahre Potenziale.</p>
-                            </div>
-                            <form onsubmit="window.handleAuth(event)" class="space-y-4">
-                                <div><label class="block text-sm font-semibold mb-1">E-Mail Adresse</label><input id="auth_email" type="email" required class="w-full p-3 bg-slate-50 rounded-xl border outline-none focus:ring-2 focus:ring-teal-500"></div>
-                                <div><label class="block text-sm font-semibold mb-1">Passwort</label><input id="auth_pass" type="password" required minlength="6" class="w-full p-3 bg-slate-50 rounded-xl border outline-none focus:ring-2 focus:ring-teal-500"></div>
-                                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl transition">${state.authMode === 'login' ? 'Einloggen' : 'Registrieren'}</button>
-                            </form>
-                            <div class="text-center mt-6">
-                                <button onclick="window.toggleAuthMode()" class="text-sm text-teal-600 hover:underline font-medium">${state.authMode === 'login' ? 'Noch kein Account? Hier registrieren' : 'Schon ein Account? Hier einloggen'}</button>
-                            </div>
-                        </div>
-                    `;
-                }
-                else if (state.view === 'role_select') {
-                    html += `
-                        <div class="text-center mb-12 mt-10">
-                            <h1 class="text-4xl font-extrabold text-slate-800 mb-4">Lass uns dein Profil einrichten</h1>
-                            <p class="text-slate-500 text-lg">Wer bist du auf EquiMatch?</p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            <button onclick="window.setView('talent')" class="p-10 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-teal-500 transition text-left group">
-                                <h2 class="text-2xl font-bold mb-2 text-slate-800">Talent</h2>
-                                <p class="text-slate-500">Ich suche ein gesundes Arbeitsumfeld, das meine echten Fähigkeiten schätzt.</p>
-                            </button>
-                            <button onclick="window.setView('company')" class="p-10 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 transition text-left group">
-                                <h2 class="text-2xl font-bold mb-2 text-slate-800">Unternehmen</h2>
-                                <p class="text-slate-500">Wir suchen Talente abseits vom Mainstream und bieten eine gesunde Kultur.</p>
-                            </button>
-                        </div>
-                    `;
-                }
-                else if (state.view === 'talent') {
-                    html += `
-                        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 max-w-2xl mx-auto mb-20">
-                            <h2 class="text-3xl font-bold mb-2 text-slate-800">Dein Deep-Profile</h2>
-                            <p class="text-slate-500 mb-8">Wir pfeifen auf starre Ausbildungsberufe. Zeig uns, was du *wirklich* kannst.</p>
-                            
-                            <div class="space-y-6">
-                                <div class="bg-teal-50 p-5 rounded-2xl border border-teal-100">
-                                    <label class="block text-sm font-bold text-teal-900 mb-2">Deine "Superkraft" (Statt starrer Jobtitel)</label>
-                                    <input id="t_superpower" type="text" value="${state.profile?.superpower || ''}" class="w-full p-3 rounded-xl border-none outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" placeholder="z.B. Interkulturelle Kommunikation">
-                                </div>
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Dein einzigartiger Hintergrund</label><textarea id="t_background" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 h-24">${state.profile?.background || ''}</textarea></div>
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Hard & Soft Skills (Komma-getrennt)</label><input id="t_skills" type="text" value="${state.profile?.skills || ''}" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200"></div>
-                                <div class="h-px bg-slate-200 my-6"></div>
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Wichtigkeit Mentale Gesundheit (1-10)</label><input id="t_health" type="range" min="1" max="10" value="${state.profile?.health || 8}" class="w-full accent-teal-600"></div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Was du brauchst (Needs)</label><textarea id="t_about" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 h-24">${state.profile?.about || ''}</textarea></div>
-                                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Red Flags (No-Gos)</label><textarea id="t_redflags" class="w-full p-3 bg-red-50 rounded-xl border border-red-200 h-24 text-red-900">${state.profile?.redFlags || ''}</textarea></div>
-                                </div>
-                            </div>
-                            <button onclick="window.saveTalent()" class="w-full bg-slate-900 hover:bg-slate-800 text-white p-4 rounded-xl font-bold mt-8 shadow-lg transition">Profil aktivieren & speichern</button>
-                        </div>
-                    `;
-                }
-                else if (state.view === 'company') {
-                    html += `
-                        <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 max-w-2xl mx-auto mb-20">
-                            <h2 class="text-3xl font-bold mb-2 text-slate-800">Unternehmensprofil</h2>
-                            <div class="space-y-6">
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-1">Firmenname</label><input id="c_name" type="text" value="${state.profile?.name || ''}" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200"></div>
-                                <div class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
-                                    <label class="block text-sm font-bold text-indigo-900 mb-2">Offenheit für unkonventionelle Talente</label>
-                                    <select id="c_openness" class="w-full p-3 rounded-xl border-none outline-none shadow-sm">
-                                        <option value="high" ${state.profile?.openness === 'high' ? 'selected' : ''}>Sehr hoch - Wir suchen Potenzial, keine Standard-Zertifikate!</option>
-                                        <option value="medium" ${state.profile?.openness === 'medium' ? 'selected' : ''}>Mittel - Wir schauen uns auch internationale Abschlüsse gerne an.</option>
-                                        <option value="low" ${state.profile?.openness === 'low' ? 'selected' : ''}>Eher traditionell</option>
-                                    </select>
-                                </div>
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Euer Culture Score (1-10)</label><input id="c_culture" type="range" min="1" max="10" value="${state.profile?.culture || 7}" class="w-full accent-indigo-600"></div>
-                                <div><label class="block text-sm font-semibold text-slate-700 mb-1">Health Benefits & Perks</label><textarea id="c_perks" class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 h-20">${state.profile?.perks || ''}</textarea></div>
-                            </div>
-                            <button onclick="window.saveCompany()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold mt-8 shadow-lg transition">Profil aktivieren</button>
-                        </div>
-                    `;
-                }
-                else if (state.view === 'dashboard' && state.role === 'talent') {
-                    const myApps = state.applications.filter(a => a.talentId === state.user?.uid);
-                    html += `
-                        <div class="mb-8 flex justify-between items-center flex-wrap gap-4">
-                            <div><h2 class="text-3xl font-bold text-slate-800 mb-1">Deine Superkraft wirkt.</h2><p class="text-slate-500">Du wirst für das gefunden, was du wirklich kannst.</p></div>
-                            ${!(state.profile?.verified) ? `<button onclick="window.openVerifyModal()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Profil analysieren & verifizieren</button>` : `<div class="text-green-700 bg-green-100 px-5 py-2.5 rounded-xl font-bold shadow-sm flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Identität & Skills Geprüft</div>`}
-                        </div>
-                        <button onclick="window.setView('talent')" class="mb-6 text-sm text-slate-500 hover:text-teal-600 underline">Profil bearbeiten</button>
-                        <div class="space-y-4">
-                            ${myApps.length === 0 ? `<div class="bg-white p-12 rounded-3xl border-2 border-dashed border-slate-200 text-center"><p class="text-slate-500 text-lg">Noch keine Anfragen. Dein Deep-Profile arbeitet gerade für dich.</p></div>` : ''}
-                            ${myApps.map(app => `
-                                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center gap-4 flex-wrap">
-                                    <div class="flex-1"><h3 class="font-bold text-xl">${app.companyName} beweist Interesse</h3><div class="bg-slate-50 p-4 rounded-xl text-slate-700 italic border-l-4 border-teal-400 mt-3">"${app.message}"</div></div>
-                                    <button onclick="window.openChat('${app.id}')" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition whitespace-nowrap">Chat öffnen</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }
-                else if (state.view === 'dashboard' && state.role === 'company') {
-                    html += `
-                        <div class="mb-8 flex justify-between items-center bg-indigo-900 p-8 rounded-3xl text-white shadow-xl">
-                            <div><h2 class="text-2xl font-bold mb-1">Wahre Potenziale entdecken</h2><p class="text-indigo-200">Unabhängig von starren Abschlüssen.</p></div>
-                            <div class="text-right"><div class="text-sm text-indigo-300">Verbleibende Anfragen</div><div class="text-4xl font-black">${(state.profile?.credits || 0) > 100 ? '∞' : (state.profile?.credits || 0)}</div></div>
-                        </div>
-                        <button onclick="window.setView('company')" class="mb-6 text-sm text-slate-500 hover:text-indigo-600 underline">Firmenprofil bearbeiten</button>
-                        <div class="grid grid-cols-1 gap-6">
-                    `;
-                    state.talents.forEach(t => {
-                        const existingApp = state.applications.find(a => a.talentId === t.uid && a.companyId === state.user?.uid);
-                        const skills = t.skills ? t.skills.split(',').map(s => `<span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-sm font-semibold mr-2 mb-2 inline-block border border-indigo-100">${s.trim()}</span>`).join('') : '';
-                        
-                        html += `
-                            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 hover:shadow-lg transition relative">
-                                ${t.verified ? `<div class="absolute top-6 right-6 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Geprüft</div>` : ''}
-                                <div class="mb-4"><span class="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">Superkraft</span></div>
-                                <h3 class="font-black text-2xl text-slate-800 mb-4">${t.superpower || 'Ungeschriebenes Talent'}</h3>
-                                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                                    <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Einzigartiger Hintergrund</p><p class="text-sm text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed">${t.background || 'Nicht angegeben'}</p></div>
-                                    <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Health & Needs</p><p class="text-sm text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100 leading-relaxed"><span class="font-bold">Priorität: ${t.health}/10</span><br><br>"${t.about}"</p></div>
-                                </div>
-                                ${skills ? `<div class="mb-6">${skills}</div>` : ''}
-                                ${t.redFlags ? `<div class="mb-6 bg-red-50 p-4 rounded-xl border border-red-100"><p class="text-xs font-bold text-red-500 uppercase tracking-wider mb-1">Red Flags</p><p class="text-sm text-red-800">${t.redFlags}</p></div>` : ''}
-                                
-                                ${existingApp ? `
-                                    <div class="flex gap-4 mt-6">
-                                        <div class="bg-slate-100 text-slate-500 flex-1 py-4 rounded-xl font-bold text-center flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Bereits angefragt</div>
-                                        <button onclick="window.openChat('${existingApp.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white flex-1 py-4 rounded-xl font-bold shadow-md transition">Nachrichten (Chat)</button>
-                                    </div>
-                                ` : `
-                                    <button onclick="window.openApplyModal('${t.uid}')" class="bg-slate-900 text-white w-full py-4 rounded-xl font-bold hover:bg-indigo-600 transition shadow-md mt-6">Profil anfragen</button>
-                                `}
-                            </div>
-                        `;
-                    });
-                    html += `</div>`;
-                }
-                html += `</div>`;
-
-                // --- MODALS ---
-                if (state.showVerifyModal) {
-                    html += `<div class="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 z-50"><div class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center"><h3 class="text-2xl font-bold mb-2">Profil Verifizierung</h3><p class="text-sm text-slate-500 mb-6">Wir analysieren deine Zertifikate mithilfe unserer KI.</p>${state.verifyStep === 0 ? `<input id="v_link" type="text" class="w-full p-4 border border-slate-200 bg-slate-50 rounded-xl mb-4 outline-none focus:ring-2 focus:ring-teal-500" placeholder="Link (z.B. LinkedIn, Portfolio)"><div class="flex gap-2"><button onclick="window.closeVerifyModal()" class="px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 flex-1">Abbrechen</button><button onclick="window.runVerification()" class="px-4 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 flex-1">Starten</button></div>` : state.verifyStep === 1 ? `<div class="py-10 text-teal-600 font-bold animate-pulse text-lg flex flex-col items-center"><svg class="w-10 h-10 mb-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Scanne Quell-Datenbanken...</div>` : `<div class="py-10 text-indigo-600 font-bold animate-pulse text-lg flex flex-col items-center"><svg class="w-10 h-10 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Analysiere non-traditionelle Fähigkeiten...</div>`}</div></div>`;
-                }
-
-                if (state.activeChatAppId) {
-                    const appInfo = state.applications.find(a => a.id === state.activeChatAppId);
-                    const chatMsgs = state.messages.filter(m => m.applicationId === state.activeChatAppId).sort((a,b) => a.timestamp - b.timestamp);
-                    html += `<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"><div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full h-[600px] flex flex-col overflow-hidden border border-slate-200"><div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center"><div><h3 class="font-bold text-slate-800">Gespräch</h3><p class="text-xs text-green-600 font-medium">Sichere Verbindung</p></div><button onclick="window.closeChat()" class="p-2 bg-slate-200 rounded-full text-slate-600 hover:bg-slate-300">✕</button></div><div id="chat_messages" class="flex-1 overflow-y-auto p-4 bg-slate-100 chat-scroll flex flex-col gap-3"><div class="text-center text-xs text-slate-400 my-2">Anfrage: "${appInfo?.message || ''}"</div>${chatMsgs.length === 0 ? `<div class="text-center text-slate-500 mt-10 text-sm">Schreibe die erste Nachricht!</div>` : ''}${chatMsgs.map(msg => { const isMe = msg.senderId === state.user?.uid; return `<div class="max-w-[80%] ${isMe ? 'self-end bg-teal-600 text-white rounded-l-2xl rounded-tr-2xl' : 'self-start bg-white text-slate-800 border border-slate-200 rounded-r-2xl rounded-tl-2xl'} p-3 shadow-sm text-sm"><div class="text-[10px] ${isMe ? 'text-teal-200' : 'text-slate-400'} mb-1 font-semibold">${isMe ? 'Du' : msg.senderName}</div>${msg.text}</div>`; }).join('')}</div><div class="p-4 bg-white border-t border-slate-200 flex gap-2"><input id="chat_input" type="text" class="flex-1 p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-teal-500" placeholder="Deine Nachricht..." onkeypress="if(event.key === 'Enter') window.sendMessage()"><button onclick="window.sendMessage()" class="bg-teal-600 text-white px-5 rounded-xl font-bold hover:bg-teal-700">Senden</button></div></div></div>`;
-                }
-
-                if (state.applyingTo && !state.showPaywall) {
-                    html += `<div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"><div class="bg-white p-8 rounded-3xl shadow-2xl max-w-lg w-full"><h3 class="text-2xl font-bold mb-2">Bewerbung an Talent</h3><p class="text-sm text-slate-500 mb-6">Zeigt, warum ihr als Firma genau diesen unkonventionellen Hintergrund sucht.</p><textarea id="apply_message" class="w-full p-4 border border-slate-200 bg-slate-50 rounded-xl mb-6 h-32 outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Dein Abschluss passt perfekt zu unserem Projekt..."></textarea><div class="flex justify-end gap-3"><button onclick="window.closeApplyModal()" class="px-5 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Abbrechen</button><button id="apply_btn" onclick="window.submitApplication()" class="px-6 py-3 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-700">Senden (1 Credit)</button></div></div></div>`;
-                }
-
-                if (state.showPaywall) {
-                    html += `<div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-50"><div class="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full text-center relative overflow-hidden"><h3 class="text-2xl font-extrabold mb-3">Freianfragen aufgebraucht</h3><p class="text-slate-600 mb-6">Sichere dir unbegrenzten Zugriff auf außergewöhnliche Talente abseits des Mainstreams.</p><div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl mb-8"><div class="text-3xl font-extrabold">99€ <span class="text-sm text-slate-500">/ Monat</span></div></div><div id="paypal-button-container" class="w-full min-h-[150px] relative z-10 mb-2"></div><button onclick="window.closeApplyModal()" class="w-full py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition relative z-0">Später entscheiden</button></div></div>`;
-                }
-
-                appDiv.innerHTML = html;
-            } catch (err) {
-                appDiv.innerHTML = `<div class="max-w-2xl mx-auto mt-20 p-8 bg-red-50 text-red-700 rounded-2xl border border-red-200 shadow-lg font-bold">Darstellungs-Fehler: ${err.message}</div>`;
-                console.error(err);
             }
+            // --- KEIN DROP AKTIV ---
+            else if (state.view === 'nodrop') {
+                html += `
+                    <div class="text-center">
+                        <div class="w-16 h-16 mx-auto bg-zinc-900 rounded-full flex items-center justify-center mb-6 border border-zinc-800"><svg class="w-6 h-6 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>
+                        <h1 class="text-3xl serif italic mb-3">Keine aktiven Szenen.</h1>
+                        <p class="text-zinc-500 text-sm">Der nächste Drop wird bald enthüllt. Schalte deine Push-Benachrichtigungen ein.</p>
+                    </div>
+                `;
+            }
+            // --- LOGIN ---
+            else if (state.view === 'auth') {
+                html += `
+                    <div class="text-center mb-10">
+                        <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
+                        <p class="text-zinc-400 text-sm leading-relaxed">Solo-Dates ohne sozialen Druck.<br>Versteckte Orte. Echte Begegnungen.</p>
+                    </div>
+                    <form onsubmit="window.handleAuth(event)" class="space-y-4">
+                        <input id="auth_email" type="email" placeholder="Email" required class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200">
+                        <input id="auth_pass" type="password" placeholder="Password" required minlength="6" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200">
+                        <button type="submit" class="w-full bg-zinc-100 text-zinc-900 hover:bg-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest mt-4">${state.authMode === 'login' ? 'Enter' : 'Join the Cast'}</button>
+                    </form>
+                    <button onclick="window.toggleAuthMode()" class="w-full text-center mt-6 text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest">${state.authMode === 'login' ? 'Apply for membership' : 'Already cast? Login'}</button>
+                `;
+            }
+            // --- DROP ANSICHT (TICKET KAUFEN) ---
+            else if (state.view === 'home') {
+                html += `
+                    <div class="mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-xs uppercase tracking-widest text-red-500 font-bold">Current Drop</span>
+                    </div>
+                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-8 backdrop-blur-sm relative overflow-hidden group">
+                        <div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1511556820780-d912e42b4980?auto=format&fit=crop&q=80')] bg-cover bg-center transition duration-700 group-hover:scale-105 group-hover:opacity-30"></div>
+                        <div class="relative z-10">
+                            <h2 class="text-4xl serif italic mb-2">${state.currentDrop.title}</h2>
+                            <p class="text-zinc-400 text-sm mb-8 leading-relaxed">"${state.currentDrop.vibe}"</p>
+                            <div class="space-y-3 mb-10">
+                                <div class="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-3"><span class="text-zinc-500 uppercase tracking-widest text-xs">Location</span><span class="text-zinc-300 flex items-center gap-2"><svg class="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Locked</span></div>
+                                <div class="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-3"><span class="text-zinc-500 uppercase tracking-widest text-xs">Time</span><span class="text-zinc-300">${state.currentDrop.timeText}</span></div>
+                                <div class="flex justify-between items-center text-sm"><span class="text-zinc-500 uppercase tracking-widest text-xs">Capacity</span><span class="text-amber-500 font-bold">${state.currentDrop.spotsLeft} Spots left</span></div>
+                            </div>
+                            <button onclick="window.claimTicket()" ${state.currentDrop.spotsLeft === 0 ? 'disabled' : ''} class="w-full ${state.currentDrop.spotsLeft === 0 ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-100 text-zinc-900 hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]'} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">${state.currentDrop.spotsLeft === 0 ? 'Sold Out' : 'Claim Ticket'}</button>
+                        </div>
+                    </div>
+                `;
+            }
+            // --- PAYWALL ---
+            else if (state.view === 'paywall') {
+                html += `
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl serif italic mb-3">Join the Director's Cut</h1>
+                        <p class="text-zinc-400 text-sm leading-relaxed">Sichere dir Exklusivität. Garantiert keine Oberflächlichkeit. Echte Begegnungen.</p>
+                    </div>
+                    <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-8 backdrop-blur-md mb-6">
+                        <div class="text-4xl font-light text-center mb-6 serif italic">49€ <span class="text-sm font-sans text-zinc-500 not-italic">/ month</span></div>
+                        <ul class="space-y-4 text-sm text-zinc-300 mb-8">
+                            <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 4 Secret Drop Tickets pro Monat</li>
+                            <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Icebreakers & Live Quests vor Ort</li>
+                        </ul>
+                        <div id="paypal-button-container" class="w-full min-h-[150px]"></div>
+                    </div>
+                    <button onclick="window.setView('home')" class="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest">Maybe later</button>
+                `;
+            }
+            // --- TICKET ---
+            else if (state.view === 'ticket') {
+                html += `
+                    <div class="text-center mb-8 animate-fade-in">
+                        <h1 class="text-3xl serif italic mb-2 gold-text">Your Scene is Ready.</h1>
+                        <p class="text-zinc-400 text-sm">You are the main character. Go alone. Embrace the plot.</p>
+                    </div>
+                    
+                    <div class="bg-[#e4e4e7] text-zinc-900 rounded-xl ticket-cutout p-8 relative shadow-2xl mx-4 transform rotate-1 transition hover:rotate-0 duration-500">
+                        <div class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-end opacity-20 pointer-events-none"><div class="w-1 h-32 bg-black mb-1"></div><div class="w-2 h-32 bg-black mb-1"></div><div class="w-0.5 h-32 bg-black mb-1"></div><div class="w-3 h-32 bg-black"></div></div>
+                        <div class="uppercase tracking-widest text-[10px] text-zinc-500 font-bold mb-1">Admit One</div>
+                        <h2 class="text-3xl serif italic font-black mb-6">${state.currentDrop.title}</h2>
+                        <div class="space-y-4 mb-8">
+                            <div>
+                                <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Location</div>
+                                ${state.currentDrop.phase === 'lobby' 
+                                    ? `<div class="font-semibold text-sm blur-reveal" title="Wird kurz vorher freigeschaltet">${state.currentDrop.blurLocation}</div><div class="text-xs text-red-500 mt-1 font-bold">Unlocks later</div>` 
+                                    : `<div class="font-bold text-amber-700 leading-tight">${state.currentDrop.exactLocation}</div>`}
+                            </div>
+                            
+                            ${state.currentDrop.phase !== 'lobby' ? `
+                                <div class="bg-white/50 p-3 rounded-lg border border-black/10"><div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Your Prop (Requisite)</div><div class="font-semibold text-sm italic">${state.currentDrop.prop}</div></div>
+                                <div class="bg-white/50 p-3 rounded-lg border border-black/10"><div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Secret Password</div><div class="font-semibold text-sm italic">${state.currentDrop.secretDrink}</div></div>
+                            ` : ''}
+
+                            <div class="flex justify-between pt-2 border-t border-black/10">
+                                <div><div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Time</div><div class="font-semibold">${state.currentDrop.timeText}</div></div>
+                                <div class="text-right"><div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Your Alias</div><div class="font-semibold italic text-amber-700">${state.profile?.alias}</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${state.currentDrop.phase === 'lobby' ? `<button onclick="window.setView('room')" class="mt-10 w-full bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">Lobby Chat öffnen</button>` 
+                    : state.currentDrop.phase === 'live' ? `<button onclick="window.setView('room')" class="mt-10 w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition shadow-[0_0_20px_rgba(217,119,6,0.4)] text-sm uppercase tracking-widest animate-pulse">Start Live Scene</button>` 
+                    : `<button onclick="window.setView('room')" class="mt-10 w-full bg-white text-black font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">View Credits</button>`}
+                `;
+            }
+            // --- ROOM (LOBBY / LIVE / CREDITS) ---
+            else if (state.view === 'room') {
+                if (state.currentDrop.phase === 'lobby') {
+                    html += `
+                        <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50">
+                            <div class="p-6 border-b border-zinc-800/50 flex justify-between items-center backdrop-blur-md bg-zinc-900/50">
+                                <div><h3 class="font-bold text-zinc-100 serif italic text-xl">The Lobby</h3><div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mt-1">Chat ends at start</div></div>
+                                <button onclick="window.setView('ticket')" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold">Leave</button>
+                            </div>
+                            <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
+                                <div class="text-center my-4"><span class="bg-zinc-800 text-zinc-400 text-[10px] uppercase tracking-widest px-4 py-2 rounded-full border border-zinc-700/50">Anonymous connection to the cast.</span></div>
+                                ${state.messages.map(msg => { const isMe = msg.senderId === state.user?.uid; return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; }).join('')}
+                            </div>
+                            <div class="p-4 bg-zinc-900/80 border-t border-zinc-800/50 backdrop-blur-md pb-8">
+                                <div class="flex gap-2 relative max-w-lg mx-auto"><input id="chat_input" type="text" class="flex-1 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 outline-none focus:border-amber-500/50 text-zinc-200 transition" placeholder="Whisper something..." onkeypress="if(event.key === 'Enter') window.sendMessage()"><button onclick="window.sendMessage()" class="bg-zinc-100 text-zinc-900 px-6 rounded-xl font-bold hover:bg-white transition">➔</button></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (state.currentDrop.phase === 'live') {
+                    const quest = state.currentDrop.quests[state.currentDrop.activeQuestIndex] || "Keine Quests verfügbar.";
+                    const isLast = state.currentDrop.activeQuestIndex >= state.currentDrop.quests.length - 1;
+                    
+                    html += `
+                        <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 items-center justify-center p-6 text-center">
+                            <button onclick="window.setView('ticket')" class="absolute top-8 right-8 text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold">Ticket ansehen</button>
+                            <div class="mb-12"><h2 class="text-4xl serif italic mb-3 gold-text">Action.</h2><p class="text-zinc-400 text-sm">Die Szene läuft. Legt die Handys weg und sprecht miteinander.</p></div>
+                            <div class="w-full max-w-sm bg-zinc-900/80 border border-zinc-700/50 rounded-3xl p-10 backdrop-blur-md shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+                                <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-6 animate-pulse">Live Side Quest ${(state.currentDrop.activeQuestIndex || 0) + 1}</div>
+                                <h3 class="text-2xl serif italic text-white leading-relaxed mb-8">${quest}</h3>
+                                <div class="text-[10px] uppercase tracking-widest text-zinc-500">${isLast ? 'Genießt den restlichen Abend.' : 'Wartet auf die nächste Anweisung des Directors.'}</div>
+                            </div>
+                        </div>
+                    `;
+                } else if (state.currentDrop.phase === 'credits') {
+                    html += `
+                        <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 p-6 overflow-y-auto pb-20">
+                            <button onclick="window.setView('ticket')" class="absolute top-8 right-8 text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold">Close</button>
+                            <div class="text-center mt-16 mb-12"><h2 class="text-4xl serif italic mb-3">The End.</h2><p class="text-zinc-400 text-sm">Cut! Wer war in deiner Szene? Wähle anonym aus, wen du für eine Fortsetzung wiedersehen möchtest.</p></div>
+                            <div class="max-w-sm mx-auto w-full space-y-4">
+                                ${ALIASES.filter(a => a !== (state.profile?.alias || 'The Stranger')).slice(0, 3).map(alias => `<label class="flex items-center justify-between p-5 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-900 transition group"><span class="text-lg serif italic text-zinc-300 group-hover:text-amber-500 transition">${alias}</span><input type="checkbox" class="w-5 h-5 accent-amber-500 bg-zinc-900 border-zinc-700 rounded"></label>`).join('')}
+                                <button onclick="window.submitCredits()" class="w-full bg-zinc-100 text-black font-bold py-4 rounded-xl mt-8 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:bg-white transition">Credits rollen</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            html += `</div>`;
+            appDiv.innerHTML = html;
         }
     </script>
 </body>
