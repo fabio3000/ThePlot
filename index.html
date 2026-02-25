@@ -13,15 +13,17 @@
         .film-grain { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 50; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         .gold-text { background: linear-gradient(to right, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        .ticket-wrapper { display: flex; background: linear-gradient(135deg, #e4e4e7 0%, #d4d4d8 100%); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.8); overflow: hidden; position: relative; }
+        /* Premium Ticket Animation */
+        .ticket-wrapper { display: flex; background: linear-gradient(135deg, #e4e4e7 0%, #d4d4d8 100%); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.8); overflow: hidden; position: relative; perspective: 1000px; }
         .ticket-main { flex: 1; padding: 32px; position: relative; }
         .ticket-stub { width: 80px; border-left: 3px dashed #a1a1aa; padding: 20px 10px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); color: #52525b; font-weight: 800; text-transform: uppercase; letter-spacing: 4px; font-size: 12px; transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease; transform-origin: top center; cursor: pointer; }
         .ticket-stub:hover { background-color: rgba(0,0,0,0.05); }
-        .ticket-wrapper.torn .ticket-stub { transform: rotate(195deg) translateY(40px) translateX(-20px); opacity: 0; pointer-events: none; }
-        
+        .ticket-wrapper.torn .ticket-stub { transform: rotate(195deg) translateY(60px) translateX(-40px) scale(0.9); opacity: 0; pointer-events: none; }
+        .ticket-wrapper.torn .ticket-main { border-right: 3px dashed #a1a1aa; }
+
         .chat-scroll::-webkit-scrollbar { width: 4px; }
         .chat-scroll::-webkit-scrollbar-thumb { background-color: #52525b; border-radius: 10px; }
-        .blur-reveal { filter: blur(8px); user-select: none; transition: filter 1s ease; }
+        .blur-reveal { filter: blur(8px); user-select: none; transition: filter 1.5s ease; }
         
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
         .toast { pointer-events: auto; background: rgba(24, 24, 27, 0.95); backdrop-filter: blur(8px); border: 1px solid #3f3f46; color: white; padding: 16px 24px; border-radius: 12px; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; }
@@ -32,7 +34,6 @@
 
         @keyframes breathe { 0% { transform: scale(1); opacity: 0.5; } 40% { transform: scale(1.5); opacity: 0.1; } 70% { transform: scale(1.5); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.5; } }
         .animate-breathe { animation: breathe 8s infinite ease-in-out; }
-        
         .progress-bar-smooth { transition: width 1s linear; }
     </style>
 </head>
@@ -47,25 +48,9 @@
         </div>
     </div>
 
-    <!-- Dev Menu -->
-    <div class="fixed bottom-4 right-4 z-[9990] bg-zinc-900/90 border border-zinc-700 p-4 rounded-xl backdrop-blur-md opacity-20 hover:opacity-100 transition-opacity pointer-events-auto shadow-2xl">
-        <div class="text-[9px] uppercase tracking-widest text-amber-500 font-bold text-center mb-2">Director's Controls</div>
-        <div class="flex flex-col gap-2">
-            <div class="flex gap-2">
-                <button onclick="window.shiftTime(0)" class="flex-1 px-2 py-1 bg-zinc-800 text-[10px] text-zinc-400 rounded hover:bg-zinc-700 transition">Reset</button>
-                <button onclick="window.triggerEventStart()" class="flex-1 px-2 py-1 bg-amber-900/50 text-[10px] text-amber-400 rounded border border-amber-700/50 hover:bg-amber-800/50 transition">Start Event!</button>
-            </div>
-            <div class="flex gap-2 pt-2 border-t border-zinc-800">
-                <button onclick="window.setPhaseLiveDev('lobby')" class="px-2 py-1 bg-zinc-800 text-[10px] text-white rounded hover:bg-zinc-700 flex-1">Lobby</button>
-                <button onclick="window.setPhaseLiveDev('live')" class="px-2 py-1 bg-red-900/80 text-[10px] text-white rounded hover:bg-red-800 flex-1">Live</button>
-                <button onclick="window.setPhaseLiveDev('intermission')" class="px-2 py-1 bg-blue-900/80 text-[10px] text-white rounded hover:bg-blue-800 flex-1">Pause</button>
-                <button onclick="window.setPhaseLiveDev('credits')" class="px-2 py-1 bg-zinc-800 text-[10px] text-white rounded hover:bg-zinc-700 flex-1">Credits</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="fixed bottom-4 left-4 z-50 text-[10px] text-zinc-500 font-mono select-none pointer-events-none">
-        v0.8.0 Beta
+    <!-- Versionsnummer -->
+    <div class="fixed bottom-4 left-4 z-50 text-[10px] text-zinc-600 font-mono select-none pointer-events-none">
+        v0.9.0 Beta
     </div>
 
     <script type="module">
@@ -78,7 +63,7 @@
             const configModule = await import('./config.js');
             apiKey = configModule.PLOT_CONFIG.GEMINI_API_KEY;
         } catch(e) {
-            console.warn("config.js nicht gefunden. KI-Features laufen im Fallback-Modus.");
+            console.warn("config.js nicht gefunden. KI-Features werden lokal generiert.");
         }
 
         const firebaseConfig = {
@@ -99,13 +84,12 @@
         let state = { 
             user: null, view: 'loading', profile: null, currentDrop: null, 
             hasTicket: false, messages: [], authMode: 'login', logoClicks: 0,
-            showSettings: false, showBreathe: false, selectedCity: "Paderborn", aiLoading: false,
-            devTimeOffset: 0, // Zum Testen
-            lastRenderTick: 0 // Verhindert UI flackern
+            showSettings: false, showBreathe: false, selectedCity: "Paderborn", aiLoading: false
         };
 
         const appDiv = document.getElementById('app');
         let countdownInterval;
+        let isTransitioning = false; // Verhindert Spam-Updates an die Datenbank
         let isRegistering = false; 
         let unsubs = []; 
 
@@ -125,7 +109,7 @@
 
         window.shareScene = () => {
             if(!state.currentDrop) return;
-            const text = `Ich gehe auf ein Secret Solo-Date in ${state.currentDrop.city}. Werde Teil meiner Storyline. theplot.app`;
+            const text = `Mein Vibe ist ${state.profile?.alias}. Ich gehe auf ein Secret Solo-Date in ${state.currentDrop.city}. Werde Teil der Storyline: theplot.app`;
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed";
@@ -145,10 +129,10 @@
                 
                 const q = query(collection(db, 'plot_users'), where('alias', '==', alias));
                 const snap = await getDocs(q);
-                if(snap.empty) return alias; // Ist einzigartig!
+                if(snap.empty) return alias; 
                 attempts++;
             }
-            return `The Stranger ${Math.floor(Math.random()*1000)}`; // Fallback falls wider Erwarten alles voll ist
+            return `The Stranger ${Math.floor(Math.random()*1000)}`; 
         }
 
         function clearListeners() {
@@ -174,7 +158,7 @@
                             state.selectedCity = state.profile.city || state.selectedCity;
                             checkRouting();
                         } else if (!isRegistering) {
-                            state.profile = { hasPremium: false, tickets: [], alias: "The Unknown", isAdmin: false, city: state.selectedCity };
+                            state.profile = { hasPremium: false, tickets: [], alias: "The Stranger", isAdmin: false, city: state.selectedCity };
                             setDoc(doc(db, 'plot_users', user.uid), state.profile);
                         }
                     });
@@ -193,9 +177,7 @@
                                 if(state.view === 'room' && state.currentDrop.phase === 'lobby') { render(); scrollToBottom(); }
                             });
 
-                            if(!countdownInterval) {
-                                countdownInterval = setInterval(tickLogic, 1000);
-                            }
+                            if(!countdownInterval) countdownInterval = setInterval(automatedPacingLogic, 1000);
                         } else {
                             if (window.unsubChat) { window.unsubChat(); window.unsubChat = null; }
                             state.messages = [];
@@ -214,64 +196,72 @@
             window.showToast("Systemfehler: " + error.message, "error");
         }
 
-        // --- ZENTRALE ZEIT & PACING LOGIK ---
-        function tickLogic() {
-            if (!state.currentDrop) return;
-            const now = Date.now() + state.devTimeOffset;
+        // ==========================================
+        // VOLLAUTOMATISCHES PACING SYSTEM
+        // ==========================================
+        async function automatedPacingLogic() {
+            if (!state.currentDrop || isTransitioning) return;
+            const now = Date.now();
             let shouldRender = false;
 
-            if (state.view === 'ticket') shouldRender = true; // Countdown Update
+            if (state.view === 'ticket' || state.view === 'room') shouldRender = true;
 
-            // Live Date Logic (15 Mins pro Quest)
-            if (state.currentDrop.phase === 'live' && state.currentDrop.questStartTime) {
-                const questDuration = 15 * 60 * 1000; // 15 Minuten
-                const elapsed = now - state.currentDrop.questStartTime;
+            try {
+                // 1. Lobby -> Live (Wenn Event-Zeit erreicht ist)
+                if (state.currentDrop.phase === 'lobby' && state.currentDrop.eventTime && now >= state.currentDrop.eventTime) {
+                    isTransitioning = true;
+                    await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), {
+                        phase: 'live',
+                        activeQuestIndex: 0,
+                        questStartTime: now,
+                        readyVotes: []
+                    });
+                    isTransitioning = false;
+                }
                 
-                if (elapsed >= questDuration) {
-                    // Zeit abgelaufen -> Auto Advance zur Pause
-                    if (state.profile?.isAdmin) { // Nur Admin triggert das Schreiben, um Race Conditions zu vermeiden
-                        window.advanceToIntermission();
+                // 2. Live Quest -> Intermission (Wenn 15 Minuten abgelaufen sind)
+                else if (state.currentDrop.phase === 'live' && state.currentDrop.questStartTime) {
+                    const questDuration = 15 * 60 * 1000; 
+                    if (now - state.currentDrop.questStartTime >= questDuration) {
+                        isTransitioning = true;
+                        await window.advanceToIntermission();
+                        isTransitioning = false;
                     }
                 }
-                if (state.view === 'room') shouldRender = true; // Fortschrittsbalken Update
-            }
-
-            // Intermission Logic (1 Min Pause)
-            if (state.currentDrop.phase === 'intermission' && state.currentDrop.intermissionStartTime) {
-                const breakDuration = 60 * 1000; // 60 Sekunden Pause
-                const elapsed = now - state.currentDrop.intermissionStartTime;
                 
-                if (elapsed >= breakDuration) {
-                    if (state.profile?.isAdmin) {
-                        window.advanceToNextQuest();
+                // 3. Intermission -> Next Quest (Wenn 60 Sekunden Pause abgelaufen sind)
+                else if (state.currentDrop.phase === 'intermission' && state.currentDrop.intermissionStartTime) {
+                    const breakDuration = 60 * 1000; 
+                    if (now - state.currentDrop.intermissionStartTime >= breakDuration) {
+                        isTransitioning = true;
+                        await window.advanceToNextQuest();
+                        isTransitioning = false;
                     }
                 }
-                if (state.view === 'room') shouldRender = true;
+            } catch(e) {
+                isTransitioning = false; // Falls Firebase hakt, Lock aufheben
             }
 
             if(shouldRender) render();
         }
 
         window.advanceToIntermission = async () => {
-            if(state.currentDrop?.phase !== 'live') return;
             await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), {
                 phase: 'intermission',
-                intermissionStartTime: Date.now() + state.devTimeOffset,
+                intermissionStartTime: Date.now(),
                 readyVotes: []
             });
         };
 
         window.advanceToNextQuest = async () => {
-            if(state.currentDrop?.phase !== 'intermission') return;
             const nextIdx = (state.currentDrop.activeQuestIndex || 0) + 1;
-            
             if(nextIdx >= (state.currentDrop.quests?.length || 1)) {
                 await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
             } else {
                 await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), {
                     phase: 'live',
                     activeQuestIndex: nextIdx,
-                    questStartTime: Date.now() + state.devTimeOffset,
+                    questStartTime: Date.now(),
                     readyVotes: []
                 });
             }
@@ -286,16 +276,18 @@
                 const newVotes = [...currentVotes, state.user.uid];
                 await updateDoc(dropRef, { readyVotes: newVotes });
                 
-                // Prüfe ob alle fertig sind. 4 - spotsLeft = Anzahl der echten Teilnehmer
-                const totalParticipants = Math.max(1, 4 - state.currentDrop.spotsLeft);
+                // Dynamische Berechnung der Teilnehmer
+                const totalParticipants = Math.max(1, (state.currentDrop.totalSpots || 4) - state.currentDrop.spotsLeft);
                 if (newVotes.length >= totalParticipants) {
-                    window.showToast("Alle sind bereit. Es geht weiter!", "success");
+                    window.showToast("Alle sind bereit. Story geht weiter!", "success");
                     window.advanceToIntermission();
                 } else {
                     window.showToast("Warte auf die anderen...", "info");
                 }
             }
         };
+
+        // ==========================================
 
         function checkRouting() {
             if (!state.user || !state.profile) return;
@@ -311,24 +303,51 @@
             render();
         }
 
+        function scrollToBottom() { setTimeout(() => { const chatBox = document.getElementById('chat_messages'); if (chatBox) chatBox.scrollTop = chatBox.scrollHeight; }, 50); }
+
         window.setView = (view) => { state.view = view; state.showSettings = false; state.showBreathe = false; checkRouting(); render(); };
         window.toggleAuthMode = () => { state.authMode = state.authMode === 'login' ? 'register' : 'login'; render(); };
         window.toggleSettings = () => { state.showSettings = !state.showSettings; render(); };
         window.toggleBreathe = () => { state.showBreathe = !state.showBreathe; render(); };
         
-        window.shiftTime = (ms) => {
-            if(ms === 0) state.devTimeOffset = 0;
-            else state.devTimeOffset += ms;
-            window.showToast(ms === 0 ? "Zeit normalisiert." : `Zeit in die Zukunft gespult.`, "info");
-            tickLogic();
+        window.setApiKey = () => {
+            const currentKey = localStorage.getItem('plot_gemini_key') || "";
+            const key = prompt("Google Gemini API Key eingeben (nur für den KI-Generator im Admin-Panel):", currentKey);
+            if (key !== null) {
+                localStorage.setItem('plot_gemini_key', key.trim());
+                window.showToast("API Key sicher lokal gespeichert.", "success");
+            }
         };
 
-        window.triggerEventStart = () => {
-            if(!state.currentDrop || !state.currentDrop.eventTime) return;
+        // ADMIN TIME TRAVEL
+        window.adminTimeTravel = async (action) => {
+            if(!state.currentDrop) return;
+            const ref = doc(db, 'plot_drops', state.currentDrop.id);
             const now = Date.now();
-            state.devTimeOffset = state.currentDrop.eventTime - now; 
-            window.showToast("Zeitsprung zum Eventstart!", "info");
-            tickLogic();
+            
+            if (action === 'reveal') {
+                // Setze Event-Start auf in 30 Minuten (Löst Location-Reveal aus, der bei 1h greift)
+                await updateDoc(ref, { eventTime: now + (30 * 60 * 1000) });
+                window.showToast("Zeitsprung: Location enthüllt.", "info");
+            } else if (action === 'start') {
+                // Event sofort starten
+                await updateDoc(ref, { eventTime: now - 1000 });
+                window.showToast("Zeitsprung: Event gestartet!", "success");
+            } else if (action === 'skip_quest') {
+                // Quest-Timer abgelaufen machen (16 Min in Vergangenheit)
+                await updateDoc(ref, { questStartTime: now - (16 * 60 * 1000) });
+                window.showToast("Zeitsprung: Quest übersprungen.", "info");
+            }
+        };
+
+        window.activateTicket = () => {
+            const ticket = document.getElementById('main-ticket');
+            if(ticket && !ticket.classList.contains('torn')) {
+                ticket.classList.add('torn'); // Triggert die CSS Abreiß-Animation
+                setTimeout(() => window.setView('room'), 800);
+            } else {
+                window.setView('room');
+            }
         };
 
         window.handleAuth = async (e) => {
@@ -338,11 +357,9 @@
             const email = document.getElementById('auth_email').value; 
             const pass = document.getElementById('auth_pass').value;
             let city = "Paderborn";
-            let vibe = "Mysteriös";
             
             if (state.authMode === 'register') {
                 city = document.getElementById('reg_city').value;
-                vibe = document.getElementById('reg_vibe').value || "Mysteriös";
             }
 
             if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
@@ -453,6 +470,7 @@
 
             const timeInput = document.getElementById('admin_time').value; 
             const eventTimestamp = new Date(timeInput).getTime();
+            const totalSpots = parseInt(document.getElementById('admin_spots').value);
 
             const newDrop = {
                 id: 'drop_' + Date.now(), city: city,
@@ -461,7 +479,8 @@
                 blurLocation: document.getElementById('admin_blurloc').value,
                 exactLocation: document.getElementById('admin_exactloc').value,
                 eventTime: eventTimestamp,
-                spotsLeft: parseInt(document.getElementById('admin_spots').value),
+                totalSpots: totalSpots,
+                spotsLeft: totalSpots,
                 prop: document.getElementById('admin_prop').value,
                 secretDrink: document.getElementById('admin_drink').value,
                 quests: document.getElementById('admin_quests').value.split('\n').filter(q => q.trim() !== ''),
@@ -469,14 +488,6 @@
             };
             await setDoc(doc(db, 'plot_drops', newDrop.id), newDrop); 
             window.showToast(`Drop veröffentlicht!`, "success");
-        };
-
-        window.setPhaseLiveDev = async (phase) => { 
-             if(!state.currentDrop) return;
-             const updateData = { phase: phase, readyVotes: [] };
-             if(phase === 'live') { updateData.liveStartTime = Date.now() + state.devTimeOffset; updateData.questStartTime = Date.now() + state.devTimeOffset; }
-             if(phase === 'intermission') updateData.intermissionStartTime = Date.now() + state.devTimeOffset;
-             await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), updateData);
         };
 
         window.claimTicket = async () => {
@@ -489,6 +500,8 @@
                             createOrder: (data, actions) => actions.order.create({ purchase_units: [{ description: "Director's Cut", amount: { currency_code: "EUR", value: "49.00" } }] }),
                             onApprove: (data, actions) => actions.order.capture().then(() => window.unlockPremium())
                         }).render('#paypal-button-container');
+                    } else {
+                        document.getElementById('paypal-button-container').innerHTML = `<button onclick="window.unlockPremium()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(217,119,6,0.4)]">[Demo] Freischalten</button>`;
                     }
                 }, 100);
             } else {
@@ -502,7 +515,7 @@
 
         window.unlockPremium = async () => {
             await setDoc(doc(db, 'plot_users', state.user.uid), { hasPremium: true }, { merge: true });
-            state.view = 'home'; render(); window.showToast("Director's Cut unlocked.", "success");
+            state.view = 'home'; render(); window.showToast("Director's Cut unlocked. Welcome.", "success");
         };
 
         window.sendMessage = async () => {
@@ -555,7 +568,7 @@
 
                 let html = `
                     <nav class="p-6 flex justify-between items-center max-w-5xl mx-auto w-full z-20">
-                        <div class="text-2xl font-black tracking-tighter serif italic text-zinc-100 select-none">The Plot.</div>
+                        <div onclick="window.handleLogoClick()" class="text-2xl font-black tracking-tighter serif italic text-zinc-100 cursor-pointer select-none">The Plot.</div>
                         <div class="text-xs uppercase tracking-widest text-zinc-500 font-semibold flex items-center gap-4">
                             ${state.profile?.isAdmin ? "<span class='text-red-500'>Director</span>" : state.profile?.hasPremium ? "<span class='text-amber-500'>Director's Cut</span>" : "<span class='text-zinc-500'>Basic Cast</span>"}
                             ${state.user && !state.profile?.isAdmin ? `<button onclick="window.toggleSettings()" class="hover:text-white transition pointer-events-auto"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></button>` : ''}
@@ -572,39 +585,43 @@
 
                     html += `
                         <div class="mb-8 flex justify-between items-end">
-                            <div><h1 class="text-3xl serif italic mb-2 text-red-500">Director's Dashboard</h1><p class="text-zinc-400 text-sm">Steuere die Automatisierung.</p></div>
+                            <div><h1 class="text-3xl serif italic mb-2 text-red-500">Director's Dashboard</h1><p class="text-zinc-400 text-sm">Erschaffe Magie. Kontrolliere die Zeit.</p></div>
+                            <button onclick="window.setApiKey()" class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1.5 rounded hover:bg-zinc-700 transition">🔑 API Key setzen</button>
                         </div>
+                        
                         ${state.currentDrop ? `
                             <div class="bg-red-900/20 border border-red-500/30 p-6 rounded-2xl mb-8">
                                 <h3 class="font-bold text-white mb-2">Live Drop: ${state.currentDrop.title}</h3>
                                 <p class="text-xs text-red-400 mb-4 font-mono">Event: ${formatEventDate(state.currentDrop.eventTime)}</p>
+                                <div class="text-xs text-zinc-400 uppercase tracking-widest mb-2 font-bold">Zeitmaschine (Beta-Tests)</div>
                                 <div class="flex gap-2 mb-4">
-                                    <button onclick="window.setPhaseLiveDev('lobby')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'lobby' ? 'bg-red-600' : 'bg-zinc-800'}">1. Lobby</button>
-                                    <button onclick="window.setPhaseLiveDev('live')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'live' ? 'bg-red-600 animate-pulse' : 'bg-zinc-800'}">2. Live</button>
-                                    <button onclick="window.setPhaseLiveDev('credits')" class="flex-1 py-2 text-xs font-bold uppercase rounded ${state.currentDrop.phase === 'credits' ? 'bg-red-600' : 'bg-zinc-800'}">3. Credits</button>
+                                    <button onclick="window.adminTimeTravel('reveal')" class="flex-1 py-2 text-[10px] font-bold uppercase rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">+1h (Reveal)</button>
+                                    <button onclick="window.adminTimeTravel('start')" class="flex-1 py-2 text-[10px] font-bold uppercase rounded bg-amber-900 hover:bg-amber-800 text-amber-100 transition">Event Start</button>
+                                    <button onclick="window.adminTimeTravel('skip_quest')" class="flex-1 py-2 text-[10px] font-bold uppercase rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">Quest Skip</button>
                                 </div>
                             </div>
                         ` : ''}
+
                         <div class="bg-zinc-900/80 p-8 rounded-3xl border border-zinc-800">
                             <div class="flex justify-between items-center mb-6">
                                 <h2 class="text-xl serif italic">Neuer Drop</h2>
                                 <div class="flex gap-2">
-                                    <select id="admin_city" class="bg-zinc-950 border border-zinc-700 text-sm p-2 rounded outline-none">${CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+                                    <select id="admin_city" class="bg-zinc-950 border border-zinc-700 text-sm p-2 rounded outline-none focus:border-amber-500">${CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
                                     <button id="ai_generate_btn" type="button" onclick="window.generateAIPlot()" class="bg-fuchsia-900/50 text-fuchsia-300 border border-fuchsia-500/50 px-3 py-2 rounded text-xs font-bold flex items-center gap-1 hover:bg-fuchsia-800/50 transition">✨ KI Auto-Fill</button>
                                 </div>
                             </div>
                             <form onsubmit="window.createDrop(event)" class="space-y-4 text-sm">
-                                <input id="admin_title" required placeholder="Titel" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
-                                <textarea id="admin_vibe" required placeholder="Vibe" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none h-16"></textarea>
-                                <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
-                                <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
+                                <input id="admin_title" required placeholder="Titel" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                <textarea id="admin_vibe" required placeholder="Vibe" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none h-16 focus:border-red-500"></textarea>
+                                <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
                                 <div class="flex gap-2">
-                                    <input id="admin_time" type="datetime-local" required value="${isoDate}" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
-                                    <input id="admin_spots" type="number" value="4" class="w-24 p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
+                                    <input id="admin_time" type="datetime-local" required value="${isoDate}" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                    <input id="admin_spots" type="number" value="4" class="w-24 p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
                                 </div>
-                                <input id="admin_prop" required placeholder="Requisite" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
-                                <input id="admin_drink" required placeholder="Geheimpasswort" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none">
-                                <textarea id="admin_quests" required placeholder="Quests (1 pro Zeile)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none h-24"></textarea>
+                                <input id="admin_prop" required placeholder="Requisite" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                <input id="admin_drink" required placeholder="Geheimpasswort" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none focus:border-red-500">
+                                <textarea id="admin_quests" required placeholder="Quests (1 pro Zeile)" class="w-full p-3 bg-zinc-950 border border-zinc-800 rounded outline-none h-24 focus:border-red-500"></textarea>
                                 <button type="submit" class="w-full bg-white text-black font-bold py-3 rounded mt-4 hover:bg-zinc-200 transition">Drop veröffentlichen</button>
                             </form>
                         </div>
@@ -631,8 +648,8 @@
                                     <label class="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Deine Stadt</label>
                                     <select id="reg_city" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 mb-4">${CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
                                     
-                                    <label class="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Dein Vibe (3 Worte)</label>
-                                    <input id="reg_vibe" type="text" placeholder="z.B. Kreativ, ruhig, Kaffeeliebhaber" required class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition text-sm">
+                                    <label class="text-xs uppercase tracking-widest text-zinc-500 font-bold block mb-2">Dein Vibe (z.B. Kreativ, Ruhig, Kaffeeliebhaber)</label>
+                                    <input id="reg_vibe" type="text" placeholder="Wir generieren deinen einzigartigen Alias." required class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition text-sm">
                                 </div>
                             ` : ''}
 
@@ -657,7 +674,6 @@
                                     <div class="flex justify-between items-center text-sm"><span class="text-zinc-500 uppercase tracking-widest text-xs">Capacity</span><span class="text-amber-500 font-bold">${state.currentDrop.spotsLeft} Spots left</span></div>
                                 </div>
                                 <button onclick="window.claimTicket()" ${state.currentDrop.spotsLeft === 0 ? 'disabled' : ''} class="w-full ${state.currentDrop.spotsLeft === 0 ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-100 text-zinc-900 hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]'} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">${state.currentDrop.spotsLeft === 0 ? 'Sold Out' : 'Claim Ticket'}</button>
-                                ${!state.profile.hasPremium ? `<p class="text-center text-[10px] text-zinc-500 mt-4 uppercase tracking-widest">1 Free Ticket per Month</p>` : ''}
                             </div>
                         </div>
                     `;
@@ -669,7 +685,7 @@
                             <div class="text-4xl font-light text-center mb-6 serif italic">49€ <span class="text-sm font-sans text-zinc-500 not-italic">/ month</span></div>
                             <ul class="space-y-4 text-sm text-zinc-300 mb-8">
                                 <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Unlimited Drop Tickets</li>
-                                <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Premium Aliases (The Muse, The Architect)</li>
+                                <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Premium Aliases</li>
                                 <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Safe In-App "Soft Connection" Messaging</li>
                             </ul>
                             <div id="paypal-button-container" class="w-full min-h-[150px]"></div>
@@ -678,14 +694,14 @@
                     `;
                 }
                 else if (state.view === 'ticket') {
-                    const now = Date.now() + state.devTimeOffset;
+                    const now = Date.now();
                     const msUntilEvent = state.currentDrop.eventTime - now;
                     const isWithinOneHour = msUntilEvent <= (60 * 60 * 1000); 
 
                     html += `
                         <div class="text-center mb-8 animate-fade-in"><h1 class="text-3xl serif italic mb-2 gold-text">Your Scene is Ready.</h1><p class="text-zinc-400 text-sm">You are the main character. Go alone. Embrace the plot.</p></div>
                         
-                        <div class="ticket-wrapper mx-4 group ${state.currentDrop.phase !== 'lobby' ? 'torn' : ''}" ${state.currentDrop.phase === 'lobby' ? 'onclick="this.classList.add(\'torn\'); setTimeout(()=>window.setView(\'room\'), 800)"' : ''}>
+                        <div class="ticket-wrapper mx-4 group" id="main-ticket">
                             <div class="ticket-main">
                                 <h2 class="text-3xl serif italic font-black mb-6 text-zinc-900">${state.currentDrop.title}</h2>
                                 <div class="space-y-4 mb-2 text-zinc-900">
@@ -706,15 +722,15 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="ticket-stub" title="Click to tear!">Admit One</div>
+                            <div class="ticket-stub" onclick="window.activateTicket()">Admit One</div>
                         </div>
 
-                        ${state.currentDrop.phase === 'lobby' ? `<div class="text-center mt-6 text-zinc-500 text-xs uppercase tracking-widest animate-pulse">Tippe auf das Ticket um die Lobby zu betreten</div>` : state.currentDrop.phase === 'live' ? `<button onclick="window.setView('room')" class="mt-10 w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition shadow-[0_0_20px_rgba(217,119,6,0.4)] text-sm uppercase tracking-widest animate-pulse">Enter Live Scene</button>` : `<button onclick="window.setView('room')" class="mt-10 w-full bg-white text-black font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">View Credits (Connect)</button>`}
+                        ${state.currentDrop.phase === 'lobby' ? `<button onclick="window.activateTicket()" class="mt-10 w-full bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">TICKET EINLÖSEN (LOBBY)</button>` : state.currentDrop.phase === 'live' ? `<button onclick="window.activateTicket()" class="mt-10 w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition shadow-[0_0_20px_rgba(217,119,6,0.4)] text-sm uppercase tracking-widest animate-pulse">ENTER LIVE SCENE</button>` : `<button onclick="window.setView('room')" class="mt-10 w-full bg-white text-black font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">View Credits</button>`}
                         <button onclick="window.shareScene()" class="w-full text-center mt-6 text-xs text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition flex justify-center items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg> Share your Scene</button>
                     `;
                 }
                 else if (state.view === 'room') {
-                    const now = Date.now() + state.devTimeOffset;
+                    const now = Date.now();
 
                     if (state.currentDrop.phase === 'lobby') {
                         if(state.showBreathe) {
@@ -730,7 +746,7 @@
                             html += `
                                 <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 pointer-events-auto">
                                     <div class="p-6 border-b border-zinc-800/50 flex justify-between items-center backdrop-blur-md bg-zinc-900/50">
-                                        <div><h3 class="font-bold text-zinc-100 serif italic text-xl">The Lobby</h3><div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mt-1">Chat ends at start</div></div>
+                                        <div><h3 class="font-bold text-zinc-100 serif italic text-xl">The Lobby</h3><div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mt-1">Starts at ${formatEventDate(state.currentDrop.eventTime)}</div></div>
                                         <div class="flex items-center gap-4"><button onclick="window.toggleBreathe()" class="text-amber-500/70 hover:text-amber-500 transition" title="Nervous?"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button><button onclick="window.setView('ticket')" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Leave</button></div>
                                     </div>
                                     <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
@@ -742,7 +758,8 @@
                             `;
                         }
                     } else if (state.currentDrop.phase === 'live') {
-                        const quest = state.currentDrop.quests[state.liveQuestIndex] || "Keine Quests verfügbar.";
+                        const qIndex = state.currentDrop.activeQuestIndex || 0;
+                        const quest = state.currentDrop.quests[qIndex] || "Keine Quests verfügbar.";
                         
                         // Timer & Progress Berechnung
                         const timeLimit = 15 * 60 * 1000;
@@ -751,7 +768,7 @@
                         const progressPercent = Math.min(100, (elapsed / timeLimit) * 100);
                         
                         // Voting Logik
-                        const totalParticipants = Math.max(1, 4 - (state.currentDrop.spotsLeft || 0));
+                        const totalParticipants = Math.max(1, (state.currentDrop.totalSpots || 4) - state.currentDrop.spotsLeft);
                         const votes = state.currentDrop.readyVotes?.length || 0;
                         const hasVoted = state.currentDrop.readyVotes?.includes(state.user?.uid);
 
@@ -760,13 +777,13 @@
                                 <button onclick="window.setView('ticket')" class="absolute top-8 right-8 text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Ticket</button>
                                 
                                 <div class="mb-12">
-                                    <h2 class="text-4xl serif italic mb-3 gold-text">Action.</h2>
-                                    <p class="text-zinc-400 text-sm">Legt die Handys weg und sprecht miteinander.</p>
+                                    <h2 class="text-4xl serif italic mb-3 gold-text">Eure Szene.</h2>
+                                    <p class="text-zinc-400 text-sm tracking-widest uppercase">Lass die Geschichte sich entfalten.</p>
                                 </div>
                                 
                                 <div class="w-full max-w-sm bg-zinc-900/80 border border-zinc-700/50 rounded-3xl p-8 backdrop-blur-md shadow-[0_0_50px_rgba(0,0,0,0.6)] flex flex-col items-center">
                                     <div class="w-full flex justify-between text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-4">
-                                        <span>Quest ${state.liveQuestIndex + 1} / ${state.currentDrop.quests.length}</span>
+                                        <span>Quest ${qIndex + 1} / ${state.currentDrop.quests.length}</span>
                                         <span class="font-mono">${formatMMSS(timeLeft)}</span>
                                     </div>
                                     
@@ -784,7 +801,6 @@
                             </div>
                         `;
                     } else if (state.currentDrop.phase === 'intermission') {
-                        // Pause Timer (1 Min)
                         const breakDuration = 60 * 1000;
                         const elapsed = now - (state.currentDrop.intermissionStartTime || now);
                         const breakLeft = Math.max(0, breakDuration - elapsed);
