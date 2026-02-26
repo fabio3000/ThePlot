@@ -11,26 +11,21 @@
         body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #f4f4f5; background-image: radial-gradient(circle at 50% 0%, #27272a 0%, #09090b 70%); min-height: 100vh; overflow-x: hidden; touch-action: pan-y; }
         h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
         
-        /* Generelles Filmkorn für den Hintergrund */
         .film-grain { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 50; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         .gold-text { background: linear-gradient(to right, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* Raue Papier-Textur für die Tickets */
         .paper-texture { position: relative; }
         .paper-texture::after { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)' opacity='0.08'/%3E%3C/svg%3E"); pointer-events: none; z-index: 10; mix-blend-mode: multiply; border-radius: inherit; }
 
-        /* Haptisches Ticket */
         .ticket-wrapper { display: flex; perspective: 1000px; position: relative; gap: 2px; user-select: none; -webkit-user-select: none; }
         .ticket-main { flex: 1; background: linear-gradient(135deg, #f4f4f5 0%, #e4e4e7 100%); border-radius: 16px 0 0 16px; padding: 32px; position: relative; box-shadow: -5px 10px 30px rgba(0,0,0,0.5); border-right: 3px dashed #9ca3af; transition: border-color 0.5s; overflow: hidden; }
         .ticket-stub { width: 90px; background: linear-gradient(135deg, #e4e4e7 0%, #d4d4d8 100%); border-radius: 0 16px 16px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: grab; box-shadow: 5px 10px 30px rgba(0,0,0,0.5); transform-origin: top left; transition: transform 0.1s ease-out; touch-action: none; overflow: hidden; }
         .ticket-stub:active { cursor: grabbing; }
         
-        /* Eselsohr (Gefaltete Ecke oben rechts) - Ohne irreführenden Text */
         .ticket-stub::before { content: ''; position: absolute; top: 0; right: 0; border-width: 0 45px 45px 0; border-style: solid; border-color: #09090b #09090b #ffffff #ffffff; border-radius: 0 16px 0 0; box-shadow: -3px 3px 8px rgba(0,0,0,0.3); z-index: 12; pointer-events: none; transition: border-width 0.2s ease; }
         .ticket-stub:hover::before { border-width: 0 55px 55px 0; }
         .ticket-stub-text { writing-mode: vertical-rl; transform: rotate(180deg); color: #52525b; font-weight: 900; text-transform: uppercase; letter-spacing: 4px; font-size: 14px; pointer-events: none; position: relative; z-index: 11; }
         
-        /* Die CSS Abreiß-Animation */
         .ticket-wrapper.torn .ticket-stub { transform: rotate(25deg) translateY(300px) translateX(50px) scale(0.9); opacity: 0; pointer-events: none; transition: transform 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53), opacity 0.6s ease; }
         .ticket-wrapper.torn .ticket-main { border-right-color: transparent; }
 
@@ -49,11 +44,9 @@
         .animate-breathe { animation: breathe 8s infinite ease-in-out; }
         .progress-bar-smooth { transition: width 1s linear; }
 
-        /* Draggable Container fürs kompakte Ticket */
-        #draggable-ticket { transition: transform 0.1s ease-out; touch-action: none; cursor: grab; }
+        #draggable-ticket { touch-action: none; cursor: grab; transform-origin: top center; }
         #draggable-ticket:active { cursor: grabbing; }
         
-        /* Echtere Abrisskante nach dem Öffnen */
         .torn-edge { background-image: radial-gradient(circle at 5px 0, transparent 6px, #e4e4e7 7px); background-size: 16px 10px; background-repeat: repeat-x; height: 10px; width: 100%; position: absolute; top: -10px; left: 0; transform: rotate(180deg); }
     </style>
 </head>
@@ -68,7 +61,7 @@
         </div>
     </div>
 
-    <!-- Dev Menu für Admin & Tests -->
+    <!-- Dev Menu -->
     <div id="dev-menu" class="fixed bottom-16 left-4 z-[9990] bg-zinc-900/90 border border-zinc-700 p-4 rounded-xl backdrop-blur-md opacity-20 hover:opacity-100 transition-opacity pointer-events-auto shadow-2xl hidden max-w-[200px]">
         <div class="text-[9px] uppercase tracking-widest text-amber-500 font-bold text-center mb-2">Director's Time Machine</div>
         <div class="flex flex-col gap-2">
@@ -77,19 +70,17 @@
         </div>
     </div>
 
-    <!-- Floating Chat Button -->
     <button id="floating-chat-btn" onclick="window.setView('chats')" class="fixed bottom-6 right-6 bg-zinc-800 border border-zinc-600 p-4 rounded-full shadow-2xl text-amber-500 hover:text-amber-400 hover:bg-zinc-700 transition z-40 hidden group">
         <svg class="w-6 h-6 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
     </button>
 
-    <!-- Dev Button Unten Mitte (Springt zur letzten Quest + 5 Sek) -->
     <div id="dev-skip-btn" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 hidden pointer-events-auto">
         <button onclick="window.devSkipToLastQuest()" class="bg-red-900/80 text-red-200 border border-red-700/50 px-3 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold shadow-lg hover:bg-red-800 transition">Dev: Finale (5s)</button>
     </div>
 
-    <!-- Versionsnummer Oben Links -->
+    <!-- Versionsnummer -->
     <div class="fixed bottom-4 left-4 z-50 text-[10px] text-zinc-600 font-mono select-none pointer-events-none">
-        v0.0.9 Beta
+        v0.0.82 Beta
     </div>
 
     <script type="module">
@@ -121,7 +112,7 @@
             user: null, view: 'loading', profile: null, currentDrop: null, allDrops: [],
             hasTicket: false, messages: [], authMode: 'login', logoClicks: 0,
             showSettings: false, showDirectorLogin: false, showBreathe: false, selectedCity: "Paderborn", aiLoading: false,
-            editingDropId: null, openChatId: null, devTimeOffset: 0, socialBattery: null
+            editingDropId: null, openChatId: null, devTimeOffset: 0, socialBattery: null, tempEmail: ''
         };
 
         const appDiv = document.getElementById('app');
@@ -215,8 +206,6 @@
                         
                         const completed = state.profile?.completedDrops || [];
                         
-                        // Nur Drops anzeigen, die aktiv sind in der Stadt.
-                        // WENN ein Drop bereits beendet oder in Credits ist, verschwindet er für Unbeteiligte.
                         state.currentDrop = allDrops.find(d => {
                             if (!d.isActive) return false;
                             if (d.city !== state.selectedCity) return false;
@@ -224,6 +213,7 @@
                             
                             const hasTicketForThis = state.profile?.tickets?.includes(d.id);
                             if (d.phase === 'credits' && !hasTicketForThis) return false;
+                            if (d.phase === 'finale' && !hasTicketForThis) return false;
                             
                             return true;
                         }) || null;
@@ -269,11 +259,10 @@
             if (!state.currentDrop && state.view !== 'chats') return;
             const now = Date.now() + state.devTimeOffset;
             
-            // Render nur auslösen, wenn ein sichtbarer Timer auf dem Bildschirm tickt
             let needsVisualTick = false;
             if (state.view === 'ticket') needsVisualTick = true;
             if (state.view === 'room' && state.currentDrop && (state.currentDrop.phase === 'live' || state.currentDrop.phase === 'intermission')) needsVisualTick = true;
-            if (state.view === 'chats') needsVisualTick = true; // Countdown im Chat läuft
+            if (state.view === 'chats') needsVisualTick = true; 
 
             try {
                 if (state.currentDrop && state.currentDrop.phase === 'lobby' && state.currentDrop.eventTime && now >= state.currentDrop.eventTime) {
@@ -284,7 +273,14 @@
                 else if (state.currentDrop && state.currentDrop.phase === 'live' && state.currentDrop.questStartTime) {
                     const questDuration = 15 * 60 * 1000; 
                     if (now - state.currentDrop.questStartTime >= questDuration) {
-                        isTransitioning = true; await window.advanceToIntermission(); isTransitioning = false;
+                        isTransitioning = true; 
+                        const isLastQuest = (state.currentDrop.activeQuestIndex || 0) >= (state.currentDrop.quests?.length - 1);
+                        if(isLastQuest) {
+                            await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'finale', readyVotes: [] });
+                        } else {
+                            await window.advanceToIntermission(); 
+                        }
+                        isTransitioning = false;
                     }
                 }
                 else if (state.currentDrop && state.currentDrop.phase === 'intermission' && state.currentDrop.intermissionStartTime) {
@@ -302,9 +298,19 @@
         window.advanceToNextQuest = async () => {
             const nextIdx = (state.currentDrop.activeQuestIndex || 0) + 1;
             if(nextIdx >= (state.currentDrop.quests?.length || 1)) {
-                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'finale' });
             } else {
                 await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'live', activeQuestIndex: nextIdx, questStartTime: Date.now() + state.devTimeOffset, readyVotes: [] });
+            }
+        };
+
+        window.advanceToCredits = async () => {
+            if(state.profile.isAdmin) {
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
+            } else {
+                // Wenn kein Admin klickt, ändern wir die Phase nicht global, sondern springen lokal (sollte eigentlich Admin-gesteuert sein, 
+                // aber für den reibungslosen Ablauf setzen wir die Phase für alle auf Credits, sobald der Erste klickt).
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
             }
         };
 
@@ -316,8 +322,12 @@
             }
         };
 
-        window.setSocialBattery = (level) => {
+        window.setSocialBattery = async (level) => {
             state.socialBattery = level;
+            try {
+                // Sende eine Systemnachricht, um die Grenzen sofort transparent für alle zu machen
+                await addDoc(collection(db, `plot_messages_${state.currentDrop.id}`), { senderId: 'system', senderAlias: 'System', text: `${state.profile.alias} hat den Raum betreten. Vibe: ${level}`, timestamp: Date.now(), isSystem: true });
+            } catch(e) {}
             window.showToast(`${level} - Deine Grenzen sind gesetzt.`, 'info');
             window.setView('room');
         };
@@ -333,20 +343,25 @@
                 const totalParticipants = Math.max(1, (state.currentDrop.totalSpots || 4) - state.currentDrop.spotsLeft);
                 if (newVotes.length >= totalParticipants) {
                     window.showToast("Alle sind bereit. Story geht weiter!", "success");
-                    window.advanceToIntermission();
+                    const isLastQuest = (state.currentDrop.activeQuestIndex || 0) >= (state.currentDrop.quests?.length - 1);
+                    if(isLastQuest) {
+                        await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'finale', readyVotes: [] });
+                    } else {
+                        window.advanceToIntermission();
+                    }
                 } else { window.showToast("Warte auf die anderen...", "info"); }
             }
         };
 
         window.submitCredits = async () => {
-            const selected = document.querySelector('input[name="credit_option"]:checked');
-            if(selected && selected.value !== 'none') {
-                 await addDoc(collection(db, 'plot_connections'), { userId: state.user.uid, dropId: state.currentDrop.id, preference: selected.value, timestamp: Date.now() });
-                 window.showToast("Vibe gespeichert. Der kleinste gemeinsame Nenner entscheidet das Match.", "success");
-            } else if (selected && selected.value === 'none') {
-                 window.showToast("Stark, dass du auf dein Gefühl hörst. Deine Grenzen sind wichtig.", "success");
+            const selectedBoxes = document.querySelectorAll('input[name="match_selections"]:checked');
+            const selectedIds = Array.from(selectedBoxes).map(el => el.value);
+            
+            if(selectedIds.length > 0) {
+                 await addDoc(collection(db, 'plot_connections'), { userId: state.user.uid, dropId: state.currentDrop.id, selections: selectedIds, timestamp: Date.now() });
+                 window.showToast("Auswahl gespeichert! Der Gruppenchat bleibt 7 Tage aktiv.", "success");
             } else {
-                 window.showToast("Szene geschlossen.", "info");
+                 window.showToast("Stark, dass du auf dein Gefühl hörst. Keine Auswahl getroffen.", "success");
             }
             
             await updateDoc(doc(db, 'plot_users', state.user.uid), {
@@ -390,11 +405,16 @@
             if(view !== 'room' && view !== 'battery_check') state.socialBattery = null; 
             checkRouting(); render(); 
         };
-        window.toggleAuthMode = () => { state.authMode = state.authMode === 'login' ? 'register' : 'login'; render(); };
+        
+        window.toggleAuthMode = () => { 
+            const emailEl = document.getElementById('auth_email');
+            if (emailEl) state.tempEmail = emailEl.value;
+            state.authMode = state.authMode === 'login' ? 'register' : 'login'; 
+            render(); 
+        };
+        
         window.toggleSettings = () => { state.showSettings = !state.showSettings; render(); };
         window.toggleBreathe = () => { state.showBreathe = !state.showBreathe; render(); };
-
-        // Globale Fenster-Schließen-Funktionen
         window.closeDirectorLogin = () => { state.showDirectorLogin = false; render(); };
         window.cancelEditDrop = () => { state.editingDropId = null; render(); };
         window.closeChat = () => { state.openChatId = null; render(); };
@@ -415,6 +435,7 @@
             }
             
             if(dragEl) {
+                dragEl.style.transition = 'none'; // Instant follow on drag
                 document.addEventListener('mousemove', window.onTearMove, {passive: false});
                 document.addEventListener('touchmove', window.onTearMove, {passive: false});
                 document.addEventListener('mouseup', window.endTear);
@@ -433,9 +454,9 @@
                     dragEl.style.transform = `rotate(180deg) translateY(${-diff}px) rotateX(${diff/2}deg)`;
                 }
             } else {
-                if(diff > 0 && diff < 300) {
-                    dragEl.style.transform = `translateY(${diff}px)`;
-                    dragEl.style.opacity = 1 - (diff / 300);
+                if(diff > 0 && diff < 400) {
+                    dragEl.style.transform = `translateY(${diff}px) rotate(${diff * 0.02}deg)`;
+                    dragEl.style.opacity = 1 - (diff / 500);
                 }
             }
         };
@@ -450,9 +471,11 @@
             let diff = y - startY;
             startY = 0;
             
-            if (diff > 80) { 
+            if(dragEl) dragEl.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease';
+
+            if (diff > 120) { 
                 if(!isStub) {
-                    localStorage.setItem(`torn_${state.currentDrop.id}`, 'true');
+                    localStorage.setItem(`torn_${state.user.uid}_${state.currentDrop.id}`, 'true');
                     window.showToast("Ticket geöffnet.", "success");
                     render();
                 } else {
@@ -460,7 +483,7 @@
                 }
             } else if(dragEl) { 
                 if (isStub) dragEl.style.transform = 'rotate(180deg)'; 
-                else { dragEl.style.transform = 'translateY(0)'; dragEl.style.opacity = 1; }
+                else { dragEl.style.transform = 'translateY(0) rotate(0deg)'; dragEl.style.opacity = 1; }
             }
             dragEl = null;
         };
@@ -525,6 +548,13 @@
         window.resetPassword = async () => {
             if(!state.user) return;
             try { await sendPasswordResetEmail(auth, state.user.email); window.showToast("Passwort Reset-Link gesendet.", "success"); } catch(e) { window.showToast(e.message, "error"); }
+        };
+
+        window.resetAuthPassword = async () => {
+            const email = document.getElementById('auth_email')?.value;
+            if(!email) return window.showToast("Bitte gib erst deine E-Mail oben ein.", "info");
+            try { await sendPasswordResetEmail(auth, email); window.showToast("Reset-Link gesendet.", "success"); } 
+            catch(e) { window.showToast("Fehler: " + e.message, "error"); }
         };
 
         window.deleteAcc = async () => {
@@ -611,7 +641,6 @@
             await updateDoc(doc(db, 'plot_drops', id), { isActive: !currentStatus });
         };
 
-        // ADMIN TIME MACHINE (Verändert die DB Zeit)
         window.adminTimeTravel = async (action) => {
             if(!state.currentDrop) return;
             const ref = doc(db, 'plot_drops', state.currentDrop.id);
@@ -764,7 +793,7 @@
             const input = document.getElementById('chat_input'); const text = input.value.trim();
             if (!text || !idToUse) return;
             try {
-                await addDoc(collection(db, `plot_messages_${idToUse}`), { senderId: state.user.uid, senderAlias: state.profile?.alias || 'Stranger', text: text, timestamp: Date.now() });
+                await addDoc(collection(db, `plot_messages_${idToUse}`), { senderId: state.user.uid, senderAlias: state.profile?.alias || 'Stranger', text: text, timestamp: Date.now(), isSystem: false });
                 input.value = ''; scrollToBottom();
             } catch (e) { window.showToast("Failed to send.", "error"); }
         };
@@ -822,16 +851,14 @@
             return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' }) + " Uhr";
         }
         
-        // Dynamischer Countdown für die Past-Chats Übersicht (7 Tage Timer)
         function formatExactTimeLeft(ms) {
             if(ms <= 0) return "Abgelaufen";
             const d = Math.floor(ms / (1000 * 60 * 60 * 24));
             const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((ms % (1000 * 60)) / 1000);
             if (d > 0) return `${d}T ${h}Std`;
             if (h > 0) return `${h}Std ${m}Min`;
-            return `${m}Min ${s}s`;
+            return `${m}Min`;
         }
 
         // --- UI RENDERER ---
@@ -842,7 +869,6 @@
                     return;
                 }
                 
-                // Vor dem DOM Update: Tastatur-Fokus / Eingabewert merken, falls wir im Textfeld sind
                 const activeEl = document.activeElement;
                 const isChatInput = activeEl && activeEl.id === 'chat_input';
                 let chatInputValue = '';
@@ -937,13 +963,19 @@
                         const dropInfo = state.allDrops.find(d => d.id === state.openChatId);
                         html += `
                             <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 pointer-events-auto pb-20">
-                                <div class="p-6 border-b border-zinc-800/50 flex justify-between items-center backdrop-blur-md bg-zinc-900/50 pt-10">
-                                    <div><h3 class="font-bold text-zinc-100 serif italic text-xl">${dropInfo?.title || 'Storyline'}</h3><div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mt-1">Löscht sich nach 7 Tagen</div></div>
-                                    <button onclick="window.closeChat()" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Zurück</button>
+                                <div class="p-4 border-b border-zinc-800/50 flex items-center backdrop-blur-md bg-zinc-900/50 pt-10 sticky top-0 z-20">
+                                    <button onclick="window.closeChat()" class="flex items-center gap-2 text-zinc-400 hover:text-white uppercase tracking-widest text-xs font-bold transition mr-4 bg-zinc-800/50 px-3 py-2 rounded-full border border-zinc-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Übersicht
+                                    </button>
+                                    <div><h3 class="font-bold text-zinc-100 serif italic">${dropInfo?.title || 'Storyline'}</h3></div>
                                 </div>
                                 <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
                                     ${state.messages.length === 0 ? `<div class="text-center text-zinc-500 text-sm mt-10">Noch keine Nachrichten in dieser Storyline.</div>` : ''}
-                                    ${state.messages.map(msg => { const isMe = msg.senderId === state.user?.uid; return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; }).join('')}
+                                    ${state.messages.map(msg => { 
+                                        if(msg.isSystem) return `<div class="text-center my-2 w-full"><span class="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 shadow-sm">${msg.text}</span></div>`;
+                                        const isMe = msg.senderId === state.user?.uid; 
+                                        return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; 
+                                    }).join('')}
                                 </div>
                                 <div class="p-4 bg-zinc-900/80 border-t border-zinc-800/50 backdrop-blur-md pb-8"><div class="flex gap-2 relative max-w-lg mx-auto"><input id="chat_input" type="text" class="flex-1 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 outline-none focus:border-amber-500/50 text-zinc-200 transition shadow-inner" placeholder="Nachricht..." onkeypress="if(event.key === 'Enter') window.sendMessage('${state.openChatId}')"><button onclick="window.sendMessage('${state.openChatId}')" class="bg-zinc-100 text-zinc-900 px-6 rounded-xl font-bold hover:bg-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)]">➔</button></div></div>
                             </div>
@@ -954,26 +986,26 @@
                         
                         html += `
                             <div class="mb-8 flex justify-between items-center">
-                                <div><h1 class="text-4xl serif italic mb-2 gold-text">Storylines.</h1><p class="text-zinc-400 text-sm">Deine vergangenen Szenen.</p></div>
-                                <button onclick="window.setView('${state.hasTicket ? 'ticket' : 'home'}')" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Zurück</button>
+                                <div><h1 class="text-4xl serif italic mb-2 gold-text">Storylines.</h1><p class="text-zinc-400 text-sm">Deine Gruppen- und Privat-Chats.</p></div>
+                                <button onclick="window.setView('${state.hasTicket ? 'ticket' : 'home'}')" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Zurück</button>
                             </div>
                             <div class="space-y-4 mb-20">
-                                ${pastEvents.length === 0 ? `<div class="text-center p-10 border border-zinc-800 border-dashed rounded-3xl text-zinc-500 text-sm">Du hast noch keine Szenen abgeschlossen.</div>` : ''}
+                                ${pastEvents.length === 0 ? `<div class="text-center p-10 border border-zinc-800 border-dashed rounded-3xl text-zinc-500 text-sm">Du hast noch keine aktiven Verbindungen.</div>` : ''}
                                 ${pastEvents.map(d => {
                                     const age = Date.now() - (d.eventTime || Date.now());
                                     const msLeft = (7 * 24 * 60 * 60 * 1000) - age;
                                     if(msLeft <= 0) return ''; 
                                     
                                     return `
-                                    <div onclick="window.openPastChat('${d.id}')" class="bg-zinc-900/50 border border-zinc-800 hover:border-amber-500/50 p-6 rounded-3xl cursor-pointer transition group relative overflow-hidden">
-                                        <div class="relative z-10 flex justify-between items-center">
+                                    <div onclick="window.openPastChat('${d.id}')" class="bg-zinc-900/50 border border-zinc-800 hover:border-amber-500/50 p-6 rounded-3xl cursor-pointer transition group relative overflow-hidden flex flex-col gap-4">
+                                        <div class="relative z-10 flex justify-between items-start">
                                             <div>
-                                                <h3 class="text-xl serif italic text-zinc-100 mb-1 group-hover:text-amber-400 transition">${d.title}</h3>
-                                                <p class="text-xs text-zinc-500 uppercase tracking-widest">${formatEventDate(d.eventTime)}</p>
+                                                <div class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Gruppenchat</div>
+                                                <h3 class="text-xl serif italic text-zinc-100 mb-1 group-hover:text-amber-400 transition leading-tight">${d.title}</h3>
                                             </div>
-                                            <div class="bg-zinc-950 px-3 py-2 rounded-lg text-xs font-bold text-amber-500 border border-zinc-800 flex items-center gap-2">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                Endet in: ${formatExactTimeLeft(msLeft)}
+                                            <div class="bg-zinc-950 px-3 py-1.5 rounded-lg text-[10px] font-bold text-amber-500 border border-amber-900/30 flex items-center gap-1 shadow-inner">
+                                                <svg class="w-3 h-3 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                ${formatExactTimeLeft(msLeft)}
                                             </div>
                                         </div>
                                     </div>
@@ -995,8 +1027,11 @@
                     html += `
                         <div class="text-center mb-10"><h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1><p class="text-zinc-400 text-sm leading-relaxed">Solo-Dates ohne Dating-Angst.<br>Echte Begegnungen. Magisches Pacing.</p></div>
                         <form onsubmit="window.handleAuth(event)" class="space-y-4">
-                            <input id="auth_email" type="email" placeholder="Email" required class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
-                            <input id="auth_pass" type="password" placeholder="Password" required minlength="6" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
+                            <input id="auth_email" type="email" placeholder="Email" required value="${state.tempEmail || ''}" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
+                            <div class="relative">
+                                <input id="auth_pass" type="password" placeholder="Password" required minlength="6" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
+                                ${state.authMode === 'login' ? `<div class="text-right mt-2"><button type="button" onclick="window.resetAuthPassword()" class="text-[10px] text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition">Passwort vergessen?</button></div>` : ''}
+                            </div>
                             
                             ${state.authMode === 'register' ? `
                                 <div class="pt-4 pb-2 border-t border-zinc-800/50">
@@ -1055,7 +1090,7 @@
                     `;
                 }
                 else if (state.view === 'ticket') {
-                    const isTorn = localStorage.getItem(`torn_${state.currentDrop.id}`) === 'true';
+                    const isTorn = localStorage.getItem(`torn_${state.user?.uid}_${state.currentDrop.id}`) === 'true';
                     const now = Date.now() + state.devTimeOffset;
                     const msUntilEvent = state.currentDrop.eventTime - now;
                     const isWithinOneHour = msUntilEvent <= (60 * 60 * 1000); 
@@ -1128,7 +1163,7 @@
                             <button onclick="window.setView('ticket')" class="absolute top-8 right-8 text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Zurück</button>
                             
                             <h2 class="text-4xl serif italic mb-3 gold-text text-center mt-10">Social Battery.</h2>
-                            <p class="text-zinc-400 text-sm text-center mb-10 max-w-xs leading-relaxed">Wie viel soziale Energie hast du heute? Setze deine Grenzen. Niemand erwartet von dir, dass du performst.</p>
+                            <p class="text-zinc-400 text-sm text-center mb-10 max-w-xs leading-relaxed">Wie viel soziale Energie hast du heute? Dieser Vibe wird als Systemnachricht im Chat gepostet, um Grenzen sofort klar zu kommunizieren.</p>
                             
                             <div class="space-y-4 w-full max-w-sm">
                                 <button onclick="window.setSocialBattery('Stiller Beobachter')" class="w-full p-5 border border-zinc-800 rounded-2xl hover:bg-zinc-900 transition flex flex-col items-start gap-1 group text-left relative overflow-hidden">
@@ -1146,7 +1181,7 @@
                                 <button onclick="window.setSocialBattery('Deep Talk Ready')" class="w-full p-5 border border-zinc-800 rounded-2xl hover:bg-zinc-900 transition flex flex-col items-start gap-1 group text-left relative overflow-hidden">
                                     <div class="absolute inset-0 bg-amber-500/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
                                     <span class="font-bold text-amber-500 relative z-10 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg> Deep Talk Ready</span>
-                                    <span class="text-xs text-zinc-500 relative z-10">Bereit für echte Verbindung und tiefere Gespräche.</span>
+                                    <span class="text-xs text-zinc-500 relative z-10">Bereit für echte Verbindung und tiefe Gespräche.</span>
                                 </button>
                             </div>
                         </div>
@@ -1168,7 +1203,7 @@
                         } else {
                             html += `
                                 <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 pointer-events-auto pb-6">
-                                    <div class="p-6 border-b border-zinc-800/50 flex justify-between items-center backdrop-blur-md bg-zinc-900/50 pt-10">
+                                    <div class="p-6 border-b border-zinc-800/50 flex justify-between items-center backdrop-blur-md bg-zinc-900/50 pt-10 sticky top-0 z-20">
                                         <div><h3 class="font-bold text-zinc-100 serif italic text-xl">The Lobby</h3><div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mt-1">Starts at ${formatEventDate(state.currentDrop.eventTime)}</div></div>
                                         <div class="flex items-center gap-4">
                                             <button onclick="window.toggleBreathe()" class="text-amber-500/70 hover:text-amber-500 transition" title="Nervous?"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
@@ -1178,9 +1213,12 @@
                                     <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
                                         <div class="text-center my-4 flex flex-col items-center gap-2">
                                             <span class="bg-zinc-800 text-zinc-400 text-[10px] uppercase tracking-widest px-4 py-2 rounded-full border border-zinc-700/50 shadow-sm">Anonymous connection to the cast.</span>
-                                            ${state.socialBattery ? `<span class="text-xs text-amber-500 font-bold border border-amber-500/30 px-3 py-1 rounded-full bg-amber-900/10">Vibe: ${state.socialBattery}</span>` : ''}
                                         </div>
-                                        ${state.messages.map(msg => { const isMe = msg.senderId === state.user?.uid; return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; }).join('')}
+                                        ${state.messages.map(msg => { 
+                                            if(msg.isSystem) return `<div class="text-center my-2 w-full"><span class="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 shadow-sm">${msg.text}</span></div>`;
+                                            const isMe = msg.senderId === state.user?.uid; 
+                                            return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; 
+                                        }).join('')}
                                     </div>
                                     <div class="p-4 bg-zinc-900/80 border-t border-zinc-800/50 backdrop-blur-md pb-8"><div class="flex gap-2 relative max-w-lg mx-auto"><input id="chat_input" type="text" class="flex-1 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 outline-none focus:border-amber-500/50 text-zinc-200 transition shadow-inner" placeholder="Whisper something..." onkeypress="if(event.key === 'Enter') window.sendMessage()"><button onclick="window.sendMessage()" class="bg-zinc-100 text-zinc-900 px-6 rounded-xl font-bold hover:bg-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)]">➔</button></div></div>
                                 </div>
@@ -1246,24 +1284,41 @@
                                 </div>
                             </div>
                         `;
+                    } else if (state.currentDrop.phase === 'finale') {
+                        html += `
+                            <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 items-center justify-center p-6 text-center pointer-events-auto pb-6">
+                                <h2 class="text-4xl serif italic mb-4 gold-text">Die Szene ist im Kasten.</h2>
+                                <p class="text-zinc-400 text-sm max-w-sm leading-relaxed mb-12">Die geführte Story ist vorbei. Ihr habt es toll gemacht. Der Abend gehört jetzt euch: Tauscht euch aus, trinkt in Ruhe aus, oder verabschiedet euch.</p>
+                                <button onclick="window.advanceToCredits()" class="bg-zinc-100 text-zinc-900 px-8 py-4 rounded-xl font-bold hover:bg-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)] uppercase tracking-widest text-xs">Wen möchtest du wiedersehen?</button>
+                            </div>
+                        `;
                     } else if (state.currentDrop.phase === 'credits') {
+                        
+                        // Finde alle einzigartigen Teilnehmer aus den Nachrichten
+                        const uniqueParticipants = [];
+                        const seenIds = new Set();
+                        state.messages.forEach(m => {
+                            if(m.senderId !== 'system' && m.senderId !== state.user?.uid && !seenIds.has(m.senderId)) {
+                                seenIds.add(m.senderId);
+                                uniqueParticipants.push({id: m.senderId, alias: m.senderAlias});
+                            }
+                        });
+
                         html += `
                             <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 p-6 overflow-y-auto pb-20 pointer-events-auto">
-                                <button onclick="window.setView('ticket')" class="absolute top-8 right-8 text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition">Close</button>
-                                <div class="text-center mt-12 mb-10"><h2 class="text-4xl serif italic mb-3">The End.</h2><p class="text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed">Wie möchtest du connecten? Die Person mit dem geringeren Bedürfnis setzt das Limit.</p></div>
-                                <div class="max-w-sm mx-auto w-full space-y-6">
-                                    <div>
-                                        <label class="flex flex-col p-4 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-900 transition group mb-3">
-                                            <div class="flex justify-between items-center mb-1"><span class="font-bold text-zinc-300">Kein Vibe</span><input type="radio" name="credit_option" value="none" class="accent-amber-500"></div><span class="text-xs text-zinc-500">Stille Auflösung. Keine Seite bekommt eine Ablehnung.</span>
+                                <div class="text-center mt-12 mb-8"><h2 class="text-3xl serif italic mb-3">Wen möchtest du wiedersehen?</h2><p class="text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed">Wähle die Personen, mit denen du privat in Kontakt bleiben möchtest. Wenn sie dich auch wählen, entsteht ein Match. Der Gruppenchat der Szene bleibt ohnehin noch 7 Tage für alle offen.</p></div>
+                                <div class="max-w-sm mx-auto w-full space-y-4">
+                                    
+                                    ${uniqueParticipants.length === 0 ? `<div class="p-6 border border-zinc-800 border-dashed rounded-2xl text-center text-zinc-500 text-sm">Leider gab es keine anderen aktiven Schreiber im Chat.</div>` : ''}
+                                    
+                                    ${uniqueParticipants.map(p => `
+                                        <label class="flex items-center justify-between p-5 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-900 transition group">
+                                            <span class="font-bold text-zinc-300 group-hover:text-amber-500 transition">${p.alias}</span>
+                                            <input type="checkbox" name="match_selections" value="${p.id}" class="w-5 h-5 accent-amber-500">
                                         </label>
-                                        <label class="flex flex-col p-4 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-900 transition group mb-3">
-                                            <div class="flex justify-between items-center mb-1"><span class="font-bold text-amber-500">Casual Coffee</span><input type="radio" name="credit_option" value="coffee" class="accent-amber-500"></div><span class="text-xs text-zinc-500">War sympathisch! Lass Nummern tauschen.</span>
-                                        </label>
-                                        <label class="flex flex-col p-4 border border-amber-900/30 rounded-2xl cursor-pointer hover:bg-amber-900/40 transition group shadow-[0_0_15px_rgba(217,119,6,0.1)]">
-                                            <div class="flex justify-between items-center mb-1"><span class="font-bold text-fuchsia-400">Deep Talk</span><input type="radio" name="credit_option" value="deep" class="accent-fuchsia-500"></div><span class="text-xs text-fuchsia-200/50">Da war was. In-App Briefkasten öffnen.</span>
-                                        </label>
-                                    </div>
-                                    <button onclick="window.submitCredits()" class="w-full bg-zinc-100 text-black font-bold py-4 rounded-xl mt-4 uppercase tracking-widest text-sm hover:bg-white transition">Credits rollen</button>
+                                    `).join('')}
+
+                                    <button onclick="window.submitCredits()" class="w-full bg-zinc-100 text-black font-bold py-4 rounded-xl mt-6 uppercase tracking-widest text-sm hover:bg-white transition">Auswahl speichern</button>
                                 </div>
                             </div>
                         `;
@@ -1304,7 +1359,6 @@
 
                 appDiv.innerHTML = html;
                 
-                // Stelle Text-Eingabe und Fokus wieder her, damit die Tastatur nicht wegspringt
                 if (isChatInput) {
                     const restoredInput = document.getElementById('chat_input');
                     if (restoredInput) {
@@ -1314,7 +1368,6 @@
                     }
                 }
                 
-                // Show/hide dev skip button safely after render
                 const skipBtn = document.getElementById('dev-skip-btn');
                 if (skipBtn) {
                     if (state.profile?.isAdmin && state.currentDrop?.phase === 'live' && state.view === 'room') {
