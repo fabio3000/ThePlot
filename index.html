@@ -403,36 +403,70 @@ async function generateUniqueAlias() {
     if (user) {
         clearListeners();
 
-        // 1. Profil-Snapshot mit automatischer Ansicht-Umschaltung
+        // 1. Profil-Snapshot mit sofortigem Loading-Stop
         const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
             if (docSnap.exists()) {
                 state.profile = docSnap.data();
                 state.selectedCity = state.profile.city || state.selectedCity;
                 
-                // Falls wir noch im Loading hängen, schalten wir jetzt um
+                // WICHTIG: Wenn wir eingeloggt sind, beenden wir das Loading sofort
                 if (state.view === 'loading') {
                     state.view = 'home'; 
                 }
-                
                 checkRouting();
-                render(true); // Force render um Loading zu beenden
+                render(true); // Erzwingt das Update der UI
             } else if (!isRegistering) {
-                // Fallback: Erstelle Profil falls es fehlt (z.B. nach Google-Login)
+                // Falls Profil noch nicht existiert (z.B. neuer User), erstellen wir es
                 state.profile = { 
-                    hasPremium: false, 
-                    tickets: [], 
-                    completedDrops: [], 
-                    alias: "The Stranger", 
-                    isAdmin: false, 
-                    city: state.selectedCity,
-                    extraTickets: 0,
-                    monthlyTicketsUsed: 0
+                    hasPremium: false, tickets: [], completedDrops: [], 
+                    alias: "The Stranger", isAdmin: false, city: state.selectedCity,
+                    extraTickets: 0, monthlyTicketsUsed: 0
                 };
                 setDoc(doc(db, 'plot_users', user.uid), state.profile);
                 state.view = 'home';
                 render(true);
             }
         });
+        unsubs.push(unsubProfile);
+
+        // 2. Drops-Snapshot (Szenen laden)
+        const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
+            const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            state.allDrops = allDrops;
+            
+            const completed = state.profile?.completedDrops || [];
+            
+            state.currentDrop = allDrops.find(d => {
+                if (!d.isActive || d.city !== state.selectedCity || completed.includes(d.id)) return false;
+                const hasTicket = state.profile?.tickets?.includes(d.id);
+                if ((d.phase === 'credits' || d.phase === 'finale') && !hasTicket) return false;
+                return true;
+            }) || null;
+            
+            if(state.currentDrop) {
+                state.hasTicket = state.profile?.tickets?.includes(state.currentDrop.id) || false;
+                if (window.unsubChat) window.unsubChat();
+                window.unsubChat = onSnapshot(collection(db, `plot_messages_${state.currentDrop.id}`), (msgSnap) => {
+                    state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
+                    if(state.view === 'room') { render(); scrollToBottom(); }
+                });
+                if(!countdownInterval) countdownInterval = setInterval(automatedPacingLogic, 1000);
+            }
+            
+            checkRouting();
+            render();
+        });
+        unsubs.push(unsubDrops);
+
+    } else {
+        // Nicht eingeloggt -> Zeige Auth-Screen
+        clearListeners();
+        state.user = null; state.profile = null;
+        state.view = 'auth'; 
+        render(true);
+    }
+});
+
         unsubs.push(unsubProfile);
 
         // 2. Drops-Snapshot (Logik für aktive Szenen)
