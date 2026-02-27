@@ -367,7 +367,7 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
             let needsVisualTick = false;
             if (state.view === 'ticket') needsVisualTick = true;
             if (state.view === 'room' && state.currentDrop && (state.currentDrop.phase === 'live' || state.currentDrop.phase === 'intermission')) needsVisualTick = true;
-            if (state.view === 'chats') needsVisualTick = true; 
+            if (state.view === 'chats' && !state.openChatId) needsVisualTick = true; 
 
             try {
                 if (state.currentDrop && state.currentDrop.phase === 'lobby' && state.currentDrop.eventTime && now >= state.currentDrop.eventTime) {
@@ -1144,26 +1144,26 @@ function render(force = false) {
                     `;
                 }
                 else if (state.view === 'chats') {
-                    if(state.openChatId) {
+                                        if(state.openChatId) {
                         const dropInfo = state.allDrops.find(d => d.id === state.openChatId);
                         html += `
-                            <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 pointer-events-auto pb-20">
-                                <div class="p-4 border-b border-zinc-800/50 flex items-center backdrop-blur-md bg-zinc-900/50 pt-10 sticky top-0 z-20">                                 </div>
+                            <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 pointer-events-auto">
                                 
-                                ${state.profile?.journals?.[state.openChatId] ? `
-                                <div class="p-4 mx-6 mt-6 bg-amber-900/10 border border-amber-500/20 rounded-2xl shadow-inner">
-                                    <h4 class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-2">Dein After-Glow Journal</h4>
-                                    <p class="text-sm text-zinc-300 italic leading-relaxed">"${state.profile.journals[state.openChatId]}"</p>
-                                </div>` : ''}
-                                
-                                <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
-
-                                    <button onclick="window.closeChat()" class="flex items-center gap-2 text-zinc-400 hover:text-white uppercase tracking-widest text-xs font-bold transition mr-4 bg-zinc-800/50 px-3 py-2 rounded-full border border-zinc-700">
+                                <div class="p-4 border-b border-zinc-800/50 flex items-center backdrop-blur-md bg-zinc-900/80 pt-10 sticky top-0 z-20 shadow-md">
+                                    <button onclick="window.closeChat()" class="flex items-center gap-2 text-zinc-400 hover:text-white uppercase tracking-widest text-[10px] font-bold transition mr-4 bg-zinc-800/50 px-3 py-2 rounded-full border border-zinc-700">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Übersicht
                                     </button>
-                                    <div><h3 class="font-bold text-zinc-100 serif italic">${dropInfo?.title || 'Storyline'}</h3></div>
+                                    <h3 class="font-bold text-zinc-100 serif italic truncate text-lg">${dropInfo?.title || 'Storyline'}</h3>
                                 </div>
-                                <div id="chat_messages" class="flex-1 overflow-y-auto p-6 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
+                                
+                                <div id="chat_messages" class="flex-1 overflow-y-auto p-4 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
+                                    
+                                    ${state.profile?.journals?.[state.openChatId] ? `
+                                    <div class="p-4 bg-amber-900/10 border border-amber-500/20 rounded-2xl shadow-inner mb-2 shrink-0">
+                                        <h4 class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-2">Dein After-Glow Journal</h4>
+                                        <p class="text-sm text-zinc-300 italic leading-relaxed">"${state.profile.journals[state.openChatId]}"</p>
+                                    </div>` : ''}
+
                                     ${state.messages.length === 0 ? `<div class="text-center text-zinc-500 text-sm mt-10">Noch keine Nachrichten in dieser Storyline.</div>` : ''}
                                     ${state.messages.map(msg => { 
                                         if(msg.isSystem) return `<div class="text-center my-2 w-full"><span class="text-[10px] text-zinc-500 uppercase tracking-widest bg-zinc-900/50 px-3 py-1.5 rounded-full border border-zinc-800/50 shadow-sm">${msg.text}</span></div>`;
@@ -1171,10 +1171,17 @@ function render(force = false) {
                                         return `<div class="max-w-[85%] ${isMe ? 'self-end text-right' : 'self-start'}"><div class="text-[10px] uppercase tracking-widest ${isMe ? 'text-amber-500/70' : 'text-zinc-500'} mb-1 font-bold">${isMe ? 'You' : msg.senderAlias}</div><div class="${isMe ? 'bg-amber-900/20 text-amber-50 border border-amber-900/30' : 'bg-zinc-800/50 text-zinc-200 border border-zinc-700/50'} p-4 rounded-2xl ${isMe ? 'rounded-tr-sm' : 'rounded-tl-sm'} shadow-sm text-sm font-medium leading-relaxed backdrop-blur-sm">${msg.text}</div></div>`; 
                                     }).join('')}
                                 </div>
-                                <div class="p-4 bg-zinc-900/80 border-t border-zinc-800/50 backdrop-blur-md pb-8"><div class="flex gap-2 relative max-w-lg mx-auto"><input id="chat_input" type="text" class="flex-1 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 outline-none focus:border-amber-500/50 text-zinc-200 transition shadow-inner" placeholder="Nachricht..." onkeypress="if(event.key === 'Enter') window.sendMessage('${state.openChatId}')"><button onclick="window.sendMessage('${state.openChatId}')" class="bg-zinc-100 text-zinc-900 px-6 rounded-xl font-bold hover:bg-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)]">➔</button></div></div>
+                                
+                                <div class="p-4 bg-zinc-900/90 border-t border-zinc-800/50 backdrop-blur-md pb-8">
+                                    <div class="flex gap-2 relative max-w-lg mx-auto">
+                                        <input id="chat_input" type="text" class="flex-1 p-4 bg-zinc-950 rounded-xl border border-zinc-700 outline-none focus:border-amber-500/50 text-zinc-200 transition shadow-inner" placeholder="Nachricht..." onkeypress="if(event.key === 'Enter') window.sendMessage('${state.openChatId}')">
+                                        <button onclick="window.sendMessage('${state.openChatId}')" class="bg-zinc-100 text-zinc-900 px-6 rounded-xl font-bold hover:bg-white transition shadow-[0_0_15px_rgba(255,255,255,0.1)]">➔</button>
+                                    </div>
+                                </div>
                             </div>
                         `;
                     } else {
+
                         const completedDrops = state.profile?.completedDrops || [];
                         const pastEvents = state.allDrops.filter(d => completedDrops.includes(d.id));
                         
