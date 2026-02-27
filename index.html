@@ -778,7 +778,7 @@ window.setSocialBattery = async (level) => {
         // --- AUTH & PROFILE ---
                 // --- AUTH & PROFILE ---
               // --- AUTH & PROFILE ---
-        window.handleAuth = async (e) => {
+               window.handleAuth = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('auth_submit_btn');
             const email = document.getElementById('auth_email').value; 
@@ -788,40 +788,36 @@ window.setSocialBattery = async (level) => {
 
             if (state.authMode === 'register') {
                 city = document.getElementById('reg_city').value;
-                const realNameInput = document.getElementById('reg_vibe').value;
-                if(btn) btn.innerText = "Casting Role...";
-                // Smart-Alias basierend auf dem Namen generieren
-                finalAlias = await generateUniqueAlias(realNameInput);
+                // Hier den Namen abgreifen, BEVOR der Button auf "Processing" geht
+                const nameInput = document.getElementById('reg_vibe');
+                const realName = nameInput ? nameInput.value : "";
+                
+                if(btn) { btn.disabled = true; btn.innerText = "Casting Role..."; }
+                
+                // Alias generieren
+                finalAlias = await generateUniqueAlias(realName);
+            } else {
+                if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
             }
-
-            if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
 
             try {
                 if (state.authMode === 'login') {
                     state.view = 'loading'; render();
                     await signInWithEmailAndPassword(auth, email, pass);
-                    window.showToast("Welcome back.", "success");
                 } else {
                     isRegistering = true;
                     state.view = 'loading'; render();
                     
-                    // 1. Account bei Firebase Auth erstellen
                     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
                     
-                    // 2. Profil-Dokument in Firestore erstellen
                     state.selectedCity = city;
                     state.profile = { 
-                        hasPremium: false, 
-                        tickets: [], 
-                        completedDrops: [], 
-                        alias: finalAlias, 
-                        city: city, 
-                        isAdmin: false 
+                        hasPremium: false, tickets: [], completedDrops: [], 
+                        alias: finalAlias, city: city, isAdmin: false 
                     };
                     
                     await setDoc(doc(db, 'plot_users', userCred.user.uid), state.profile);
-                    
-                    window.showToast(`Szene betreten als ${finalAlias}`, "success");
+                    window.showToast(`Rolle zugewiesen: ${finalAlias}`, "success");
                     isRegistering = false;
                 }
             } catch (err) { 
@@ -829,7 +825,6 @@ window.setSocialBattery = async (level) => {
                 state.view = 'auth'; isRegistering = false; render();
             }
         };
-
 
         
         window.handleLogout = () => { 
