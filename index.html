@@ -393,7 +393,8 @@ async function generateUniqueAlias() {
             if(countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
         }
 
-                try {
+             
+                    try {
             appInit = initializeApp(firebaseConfig);
             auth = getAuth(appInit);
             db = getFirestore(appInit);
@@ -403,7 +404,6 @@ async function generateUniqueAlias() {
                 if (user) {
                     clearListeners();
 
-                    // 1. Profil-Snapshot
                     const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
                         if (docSnap.exists()) {
                             state.profile = docSnap.data();
@@ -427,7 +427,6 @@ async function generateUniqueAlias() {
                     });
                     unsubs.push(unsubProfile);
 
-                    // 2. Drops-Snapshot
                     const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
                         const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
                         state.allDrops = allDrops;
@@ -457,7 +456,6 @@ async function generateUniqueAlias() {
                     unsubs.push(unsubDrops);
 
                 } else {
-                    // Nicht eingeloggt
                     clearListeners();
                     state.user = null; state.profile = null;
                     state.view = 'auth'; 
@@ -468,8 +466,6 @@ async function generateUniqueAlias() {
             window.showToast("Systemfehler: " + error.message, "error"); 
         }
 
-
-        } catch(error) { window.showToast("Systemfehler: " + error.message, "error"); }
 
         // ==========================================
         // AUTOMATION (Datenbank-Driven)
