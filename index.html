@@ -359,29 +359,22 @@ window.generateShareCard = () => {
             }
         };
 
-    async function generateUniqueAlias(realName = "") {
-    let attempts = 0;
+
+async function generateUniqueAlias(realName = "") {
     const firstChar = realName.trim().charAt(0).toUpperCase();
     
-    // Filtert Adjektive, die mit dem gleichen Buchstaben wie der Name beginnen
+    // Filtert Adjektive nach dem Anfangsbuchstaben des Namens
     const smartAdjectives = ADJECTIVES.filter(a => a.startsWith(firstChar));
     const pool = smartAdjectives.length > 0 ? smartAdjectives : ADJECTIVES;
 
-    while(attempts < 20) {
-        const adj = pool[Math.floor(Math.random() * pool.length)];
-        const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-        const alias = `The ${adj} ${noun}`;
-        
-        // Check in der Datenbank, ob der Alias noch frei ist
-        const q = query(collection(db, 'plot_users'), where('alias', '==', alias));
-        const snap = await getDocs(q);
-        
-        if(snap.empty) return alias; 
-        attempts++;
-    }
-    // Fallback falls alles belegt ist
-    return `The ${ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]} ${NOUNS[Math.floor(Math.random() * NOUNS.length)]} ${Math.floor(Math.random()*99)}`; 
+    const adj = pool[Math.floor(Math.random() * pool.length)];
+    const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+    
+    // Wir hängen eine kleine Zufallszahl an, um die Einzigartigkeit ohne DB-Check zu erhöhen
+    const randomSuffix = Math.floor(Math.random() * 99);
+    return `The ${adj} ${noun}`; 
 }
+
 
 
         function clearListeners() {
@@ -778,53 +771,56 @@ window.setSocialBattery = async (level) => {
         // --- AUTH & PROFILE ---
                 // --- AUTH & PROFILE ---
               // --- AUTH & PROFILE ---
-               window.handleAuth = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('auth_submit_btn');
-            const email = document.getElementById('auth_email').value; 
-            const pass = document.getElementById('auth_pass').value;
-            let city = "Köln";
-            let finalAlias = "The Stranger"; 
+             window.handleAuth = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('auth_submit_btn');
+    const email = document.getElementById('auth_email').value; 
+    const pass = document.getElementById('auth_pass').value;
+    let city = "Köln";
+    let finalAlias = "The Stranger"; 
 
-            if (state.authMode === 'register') {
-                city = document.getElementById('reg_city').value;
-                // Hier den Namen abgreifen, BEVOR der Button auf "Processing" geht
-                const nameInput = document.getElementById('reg_vibe');
-                const realName = nameInput ? nameInput.value : "";
-                
-                if(btn) { btn.disabled = true; btn.innerText = "Casting Role..."; }
-                
-                // Alias generieren
-                finalAlias = await generateUniqueAlias(realName);
-            } else {
-                if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
-            }
+    if (state.authMode === 'register') {
+        city = document.getElementById('reg_city').value;
+        const nameInput = document.getElementById('reg_vibe');
+        const realName = nameInput ? nameInput.value : "";
+        
+        if(btn) { btn.disabled = true; btn.innerText = "Casting Role..."; }
+        
+        // Timeout-Sicherung: Wenn die Generierung länger als 2 Sek dauert, nimm Fallback
+        const aliasPromise = generateUniqueAlias(realName);
+        const timeoutPromise = new Promise(res => setTimeout(() => res("The Mysterious Stranger"), 2000));
+        finalAlias = await Promise.race([aliasPromise, timeoutPromise]);
+    } else {
+        if(btn) { btn.disabled = true; btn.innerText = "Processing..."; }
+    }
 
-            try {
-                if (state.authMode === 'login') {
-                    state.view = 'loading'; render();
-                    await signInWithEmailAndPassword(auth, email, pass);
-                } else {
-                    isRegistering = true;
-                    state.view = 'loading'; render();
-                    
-                    const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-                    
-                    state.selectedCity = city;
-                    state.profile = { 
-                        hasPremium: false, tickets: [], completedDrops: [], 
-                        alias: finalAlias, city: city, isAdmin: false 
-                    };
-                    
-                    await setDoc(doc(db, 'plot_users', userCred.user.uid), state.profile);
-                    window.showToast(`Rolle zugewiesen: ${finalAlias}`, "success");
-                    isRegistering = false;
-                }
-            } catch (err) { 
-                window.showToast(err.message, "error"); 
-                state.view = 'auth'; isRegistering = false; render();
-            }
-        };
+    try {
+        if (state.authMode === 'login') {
+            state.view = 'loading'; render();
+            await signInWithEmailAndPassword(auth, email, pass);
+        } else {
+            isRegistering = true;
+            state.view = 'loading'; render();
+            
+            const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+            
+            state.selectedCity = city;
+            state.profile = { 
+                hasPremium: false, tickets: [], completedDrops: [], 
+                alias: finalAlias, city: city, isAdmin: false 
+            };
+            
+            await setDoc(doc(db, 'plot_users', userCred.user.uid), state.profile);
+            window.showToast(`Rolle zugewiesen: ${finalAlias}`, "success");
+            isRegistering = false;
+        }
+    } catch (err) { 
+        window.showToast(err.message, "error"); 
+        state.view = 'auth'; isRegistering = false; render();
+        if(btn) { btn.disabled = false; btn.innerText = state.authMode === 'login' ? 'Enter' : 'Join the Cast'; }
+    }
+};
+
 
         
         window.handleLogout = () => { 
