@@ -154,6 +154,8 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
 }
 
     </style>
+    <script src="https://www.paypal.com/sdk/js?client-id=DEINE_PAYPAL_CLIENT_ID&currency=EUR"></script>
+
 </head>
 <body class="flex flex-col relative">
     <div class="film-grain"></div>
@@ -1369,87 +1371,50 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 }
 
 
-else if (state.view === 'paywall') {
-    html += `
-        <div class="text-center p-6 pt-20 animate-fade-in flex flex-col items-center">
-            <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mb-6 border border-amber-500/30 shadow-[0_0_30px_rgba(217,119,6,0.2)]">
-                <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path></svg>
-            </div>
-            <h2 class="text-4xl serif italic mb-4 gold-text">Casting Call.</h2>
-            <p class="text-zinc-400 text-sm mb-10 leading-relaxed max-w-xs mx-auto">Dein monatliches Kontingent von 3 Szenen ist erschöpft. Hol dir ein Bundle, um sofort weiterzuspielen.</p>
-            
-            <div class="bg-zinc-900/50 border border-amber-500/30 p-8 rounded-[40px] mb-8 w-full max-w-sm backdrop-blur-md">
-                <div class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold mb-2">Director's Bundle</div>
-                <div class="text-4xl font-black text-white mb-2">19,00 €</div>
-                <div class="text-[10px] text-amber-500/70 mb-8 font-mono tracking-widest">+5 EXTRA TICKETS</div>
-                
-                <div id="paypal-button-container" class="w-full min-h-[150px]"></div>
-            </div>
-            
-            <button onclick="window.setView('home')" class="text-zinc-600 hover:text-zinc-400 text-[10px] uppercase tracking-[0.2em] font-bold transition">Später</button>
-        </div>
-    `;
+                else if (state.view === 'paywall') {
+                    html += `
+                        <div class="text-center p-6 pt-20 animate-fade-in flex flex-col items-center">
+                            <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mb-6 border border-amber-500/30 shadow-[0_0_30px_rgba(217,119,6,0.2)]">
+                                <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path></svg>
+                            </div>
+                            <h2 class="text-4xl serif italic mb-4 gold-text">Casting Call.</h2>
+                            <p class="text-zinc-400 text-sm mb-10 leading-relaxed max-w-xs mx-auto">Dein monatliches Kontingent von 3 Szenen ist erschöpft. Hol dir ein Bundle, um sofort weiterzuspielen.</p>
+                            
+                            <div class="bg-zinc-900/50 border border-amber-500/30 p-8 rounded-[40px] mb-8 w-full max-w-sm backdrop-blur-md">
+                                <div class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold mb-2">Director's Bundle</div>
+                                <div class="text-4xl font-black text-white mb-2">19,00 €</div>
+                                <div class="text-[10px] text-amber-500/70 mb-8 font-mono tracking-widest">+5 EXTRA TICKETS</div>
+                                
+                                <div id="paypal-button-container" class="w-full min-h-[150px]"></div>
+                            </div>
+                            
+                            <button onclick="window.setView('home')" class="text-zinc-600 hover:text-zinc-400 text-[10px] uppercase tracking-[0.2em] font-bold transition">Später</button>
+                        </div>
+                    `;
 
-    // Der Button muss gerendert werden, nachdem der HTML-String zum DOM hinzugefügt wurde
-    setTimeout(() => {
-        if (document.getElementById('paypal-button-container')) {
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: '19.00',
-                                currency_code: 'EUR'
-                            },
-                            // Verknüpft die Zahlung mit der User-ID für den Webhook
-                            custom_id: auth.currentUser.uid 
-                        }]
-                    });
-                },
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(details) {
-                        // Optional: Sofortiges Feedback in der App
-                        window.setView('home');
-                    });
-                },
-                onError: function(err) {
-                    console.error('PayPal Error:', err);
+                    setTimeout(() => {
+                        // Prüft, ob PayPal geladen ist und der Button nicht schon existiert
+                        if (window.paypal && document.getElementById('paypal-button-container') && !document.getElementById('paypal-button-container').innerHTML) {
+                            paypal.Buttons({
+                                createOrder: function(data, actions) {
+                                    return actions.order.create({
+                                        purchase_units: [{
+                                            amount: { value: '19.00', currency_code: 'EUR' },
+                                            custom_id: state.user.uid 
+                                        }]
+                                    });
+                                },
+                                onApprove: function(data, actions) {
+                                    return actions.order.capture().then(function(details) {
+                                        window.showToast("Zahlung autorisiert!", "success");
+                                        window.setView('home');
+                                    });
+                                }
+                            }).render('#paypal-button-container');
+                        }
+                    }, 100);
                 }
-            }).render('#paypal-button-container');
-        }
-    }, 100);
-}
 
-
-    // PayPal SDK und Button Logik initialisieren
-    setTimeout(() => {
-        const script = document.createElement('script');
-        script.src = "https://www.paypal.com/sdk/js?client-id=DEINE_PAYPAL_CLIENT_ID&currency=EUR";
-        script.onload = () => {
-            paypal.Buttons({
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: "The Plot - 5 Extra Tickets",
-                            amount: { value: '19.00' },
-                            custom_id: state.user.uid // Verknüpft die Zahlung untrennbar mit dem User
-                        }]
-                    });
-                },
-                onApprove: async (data, actions) => {
-                    const details = await actions.order.capture();
-                    window.showToast("Zahlung autorisiert. Tickets werden gutgeschrieben.", "success");
-                    // Hier lösen wir im Idealfall eine Cloud Function aus oder warten auf den Webhook
-                    window.setView('home');
-                },
-                onError: (err) => {
-                    window.showToast("Zahlungsfehler: " + err.message, "error");
-                }
-            }).render('#paypal-button-container');
-        };
-        document.body.appendChild(script);
-    }, 100);
-}
 
 
                 else if (state.view === 'chats') {
