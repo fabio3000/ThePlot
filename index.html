@@ -776,6 +776,16 @@ window.setSocialBattery = async (level) => {
         window.toggleDropActive = async (id, currentStatus) => {
             await updateDoc(doc(db, 'plot_drops', id), { isActive: !currentStatus });
         };
+        
+        window.enterAdminLiveView = (dropId) => {
+    const drop = state.allDrops.find(d => d.id === dropId);
+    if(drop) {
+        state.currentDrop = drop;
+        state.view = 'room'; // Das umgeht die strenge Admin-Weiterleitung!
+        render();
+    }
+};
+
 
         window.adminTimeTravel = async (action) => {
             if(!state.currentDrop) return;
@@ -955,14 +965,7 @@ window.setSocialBattery = async (level) => {
 
 
                 
-                
-
-
-
-
-
-
-
+        
       
 
         function formatTimeLeft(ms) {
@@ -1057,11 +1060,13 @@ window.setSocialBattery = async (level) => {
                                         <div class="text-sm font-bold text-white">${d.title} <span class="text-zinc-500 text-xs font-normal">(${d.city})</span></div>
                                         <div class="text-xs text-zinc-400">${formatEventDate(d.eventTime)} | Phase: ${d.phase}</div>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="px-2 py-1 text-[10px] uppercase font-bold rounded ${d.isActive ? 'bg-amber-900 text-amber-500' : 'bg-zinc-800 text-zinc-400'}">${d.isActive ? 'Active' : 'Hidden'}</button>
-                                        <button onclick="window.editDrop('${d.id}')" class="px-2 py-1 bg-zinc-800 text-zinc-300 text-[10px] rounded hover:bg-zinc-700">Edit</button>
-                                        <button onclick="window.deleteDrop('${d.id}')" class="px-2 py-1 bg-red-900/50 text-red-400 text-[10px] rounded hover:bg-red-900">Del</button>
-                                    </div>
+                                    <<div class="flex gap-2">
+    <button onclick="window.enterAdminLiveView('${d.id}')" class="px-2 py-1 bg-amber-900/50 text-amber-500 text-[10px] rounded border border-amber-700/50 hover:bg-amber-800/50 font-bold uppercase tracking-widest">👀 Live</button>
+    <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="px-2 py-1 text-[10px] uppercase font-bold rounded ${d.isActive ? 'bg-amber-900 text-amber-500' : 'bg-zinc-800 text-zinc-400'}">${d.isActive ? 'Active' : 'Hidden'}</button>
+    <button onclick="window.editDrop('${d.id}')" class="px-2 py-1 bg-zinc-800 text-zinc-300 text-[10px] rounded hover:bg-zinc-700">Edit</button>
+    <button onclick="window.deleteDrop('${d.id}')" class="px-2 py-1 bg-red-900/50 text-red-400 text-[10px] rounded hover:bg-red-900">Del</button>
+</div>
+
                                 </div>
                             `).join('')}
                         </div>
