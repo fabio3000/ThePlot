@@ -500,22 +500,6 @@ window.setSocialBattery = async (level) => {
             }
         };
 
-        window.submitCredits = async () => {
-            const selectedBoxes = document.querySelectorAll('input[name="match_selections"]:checked');
-            const selectedIds = Array.from(selectedBoxes).map(el => el.value);
-            
-            if(selectedIds.length > 0) {
-                 await addDoc(collection(db, 'plot_connections'), { userId: state.user.uid, dropId: state.currentDrop.id, selections: selectedIds, timestamp: Date.now() });
-                 window.showToast("Auswahl gespeichert! Der Gruppenchat bleibt 7 Tage aktiv.", "success");
-            } else {
-                 window.showToast("Stark, dass du auf dein Gefühl hörst. Keine Auswahl getroffen.", "success");
-            }
-            
-            await updateDoc(doc(db, 'plot_users', state.user.uid), {
-                completedDrops: arrayUnion(state.currentDrop.id)
-            });
-            window.setView('chats');
-        };
 
         // ==========================================
         // UI & NAVIGATION
@@ -556,7 +540,7 @@ window.setSocialBattery = async (level) => {
 
     
     
-};
+
 
         
         window.toggleAuthMode = () => { 
@@ -664,7 +648,7 @@ window.setSocialBattery = async (level) => {
         };
 
         // --- AUTH & PROFILE ---
-        window.window.handleAuth = async (e) => {
+        window.handleAuth = async (e) => {
     e.preventDefault();
     const btn = document.getElementById('auth_submit_btn');
     const email = document.getElementById('auth_email').value; 
