@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>The Plot | Your life is a movie.</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.paypal.com/sdk/js?client-id=AdWPwOjuX1h1gYLtvpb63&currency=EUR"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
 /* --- BASIS & SCROLL-LOGIK --- */
@@ -551,10 +550,7 @@ window.setSocialBattery = async (level) => {
     checkRouting(); 
     render(); 
     
-    // NEU: PayPal auslösen, wenn wir auf die Paywall wechseln (Standard: Unlimited)
-    if (view === 'paywall') {
-        window.initPayPal("49.00", "Director's Cut Premium", false);
-    }
+    
 };
 
         
@@ -939,95 +935,35 @@ window.setSocialBattery = async (level) => {
         };
 
 
-window.initPayPal = (price, description, isBundle = false) => {
-    setTimeout(() => {
-        const container = document.getElementById('paypal-button-container');
-        if (!container) return;
-        
-        container.innerHTML = ''; // Vorher leeren
-        
-        if (window.paypal && window.paypal.Buttons) {
-            window.paypal.Buttons({
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: description,
-                            amount: { currency_code: "EUR", value: price }
-                        }]
-                    });
-                },
-                onApprove: (data, actions) => {
-                    return actions.order.capture().then(async () => {
-                        if (isBundle) {
-                            // Füge hier deine Logik für +5 Tickets hinzu (Beispiel)
-                            // const currentTickets = state.profile?.ticketCount || 0;
-                            // await setDoc(doc(db, 'plot_users', state.user.uid), { ticketCount: currentTickets + 5 }, { merge: true });
-                            window.showToast("5 Tickets erfolgreich hinzugefügt!", "success");
-                            window.setView('home');
-                        } else {
-                            window.unlockPremium();
-                        }
-                    });
-                },
-                onError: (err) => {
-                    console.error("PayPal Error:", err);
-                    window.showToast("PayPal konnte nicht geladen werden.", "error");
-                }
-            }).render('#paypal-button-container');
-        } else {
-            container.innerHTML = `<button onclick="window.unlockPremium()" class="w-full bg-amber-600 py-4 rounded-xl font-bold uppercase text-xs shadow-lg">Upgrade jetzt aktivieren (Demo)</button>`;
-        }
-    }, 500); 
-};
 
-        window.claimTicket = async () => {
+
+      window.claimTicket = async () => {
     try {
-        if (!state.profile?.hasPremium && state.profile?.tickets && state.profile.tickets.length >= 1) {
-            window.setView('paywall'); // Ruft ab sofort PayPal automatisch auf
-        } else {
-            // Normaler Buchungsprozess
-            const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
-            await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
-            await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { 
-                spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) 
-            });
-            state.hasTicket = true; 
-            state.view = 'ticket'; 
-            render();
-            window.showToast("Ticket erfolgreich gesichert.", "success");
-        }
+        const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
+        await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
+        await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { 
+            spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) 
+        });
+        state.hasTicket = true; 
+        state.view = 'ticket'; 
+        render();
+        window.showToast("Ticket erfolgreich gesichert.", "success");
     } catch (err) {
         window.showToast("Fehler: " + err.message, "error");
     }
 };
 
+
                 
                 
 
 
-window.buyBundle = () => {
-    state.showSettings = false; // <-- Das schließt das Menü!
-    state.view = 'paywall'; 
-    render();
-    window.initPayPal("15.00", "5 Ticket Bundle", true); 
-};
 
 
 
 
-      window.unlockPremium = async () => {
-    // 1. UI sofort aktualisieren, damit nichts hängen bleibt
-    state.view = 'home'; 
-    render(); 
-    window.showToast("Director's Cut unlocked. Welcome.", "success");
-    
-    // 2. Datenbank-Update (mit Fehler-Abfang für die Demo)
-    try {
-        await setDoc(doc(db, 'plot_users', state.user.uid), { hasPremium: true }, { merge: true });
-    } catch (err) {
-        console.warn("Demo-Hinweis: Firebase Rules blockieren das Speichern von Premium.", err);
-    }
-};
+
+      
 
         function formatTimeLeft(ms) {
             if(ms <= 0) return "Jetzt";
@@ -1272,47 +1208,7 @@ window.buyBundle = () => {
                         </div>
                     `;
                 }
-             else if (state.view === 'paywall') {
-    html += `
-        <div class="text-center mb-8 animate-fade-in">
-            <h1 class="text-3xl serif italic mb-3 gold-text">Join the Director's Cut</h1>
-            <p class="text-zinc-400 text-sm leading-relaxed max-w-[280px] mx-auto">
-                Sichere dir Exklusivität. Keine Dating-App Erschöpfung mehr. Echte Begegnungen.
-            </p>
-        </div>
-
-        <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-8 backdrop-blur-md mb-6 shadow-2xl paper-texture">
-            <div class="text-4xl font-light text-center mb-6 serif italic text-zinc-100">
-                49€ <span class="text-sm font-sans text-zinc-500 not-italic">/ lifetime</span>
-            </div>
             
-            <ul class="space-y-4 text-sm text-zinc-300 mb-8">
-                <li class="flex items-center gap-3">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
-                    Unlimited Drop Tickets
-                </li>
-                <li class="flex items-center gap-3">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
-                    Premium Aliases
-                </li>
-                <li class="flex items-center gap-3">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
-                    Safe "Soft Connection" Messaging
-                </li>
-            </ul>
-
-            <div id="paypal-button-container" class="w-full min-h-[150px] flex flex-col justify-center">
-                <div class="animate-pulse text-zinc-500 text-xs text-center font-mono tracking-widest uppercase">
-                    Sekunde, wir laden den Projektor...
-                </div>
-            </div>
-        </div>
-
-        <button onclick="window.setView('home')" class="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">
-            Vielleicht später
-        </button>
-    `;
-}
 
                 else if (state.view === 'ticket') {
                     const isTorn = localStorage.getItem(`torn_${state.user?.uid}_${state.currentDrop.id}`) === 'true';
@@ -1586,15 +1482,7 @@ window.buyBundle = () => {
                                         <button onclick="window.regenerateAlias()" class="text-xs bg-amber-900/50 text-amber-400 px-3 py-1.5 rounded hover:bg-amber-800/50 transition border border-amber-700/50">Reroll</button>
                                     </div>
                                 </div>
-                                <div class="mt-8 space-y-2 border-t border-zinc-800 pt-6">
-                                    
-                                    <div class="mt-6 pt-6 border-t border-zinc-800">
-    <div class="flex gap-2">
-        <button onclick="window.setView('paywall')" class="flex-1 py-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-[10px] text-amber-500 font-bold uppercase">Unlimited</button>
-       <button onclick="window.buyBundle()" class="flex-1 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-[10px] text-zinc-400 font-bold uppercase">+5 Tickets</button>
-
-    </div>
-</div>
+                            
 
                                     <button onclick="window.resetPassword()" class="w-full text-left p-3 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition rounded-lg">Passwort zurücksetzen</button>
                                     <button onclick="window.handleLogout()" class="w-full text-left p-3 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition rounded-lg">Ausloggen</button>
