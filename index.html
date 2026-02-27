@@ -428,15 +428,54 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
             }
         };
 
-        window.setSocialBattery = async (level) => {
-            state.socialBattery = level;
-            try {
-                // Sende eine Systemnachricht, um die Grenzen sofort transparent für alle zu machen
-                await addDoc(collection(db, `plot_messages_${state.currentDrop.id}`), { senderId: 'system', senderAlias: 'System', text: `${state.profile.alias} hat den Raum betreten. Vibe: ${level}`, timestamp: Date.now(), isSystem: true });
-            } catch(e) {}
-            window.showToast(`${level} - Deine Grenzen sind gesetzt.`, 'info');
-            window.setView('room');
-        };
+window.setSocialBattery = async (level) => {
+    // Holt den Text aus dem neuen Eingabefeld
+    const icebreaker = document.getElementById('icebreaker_input')?.value || "";
+    state.socialBattery = level;
+    
+    // Erstellt die Nachricht: Entweder nur der Status oder Status + Icebreaker
+    const statusText = icebreaker ? `${level} | Frag mich nach: ${icebreaker}` : level;
+    
+    try {
+        await addDoc(collection(db, `plot_messages_${state.currentDrop.id}`), { 
+            senderId: 'system', 
+            senderAlias: 'System', 
+            text: `${state.profile.alias} hat den Raum betreten. Vibe: ${statusText}`, 
+            timestamp: Date.now(), 
+            isSystem: true 
+        });
+    } catch(e) { console.error(e); }
+    
+    window.showToast(`${level} gesetzt.`, 'info');
+    window.setView('room');
+};
+
+        window.submitCredits = async () => {
+    const selectedBoxes = document.querySelectorAll('input[name="match_selections"]:checked');
+    const selectedIds = Array.from(selectedBoxes).map(el => el.value);
+    
+    // Holt den Text aus dem Journal-Feld
+    const journalText = document.getElementById('afterglow_journal')?.value || "";
+    
+    try {
+        await addDoc(collection(db, 'plot_connections'), { 
+            userId: state.user.uid, 
+            dropId: state.currentDrop.id, 
+            selections: selectedIds, 
+            journal: journalText, 
+            timestamp: Date.now() 
+        });
+        
+        await updateDoc(doc(db, 'plot_users', state.user.uid), {
+            completedDrops: arrayUnion(state.currentDrop.id)
+        });
+        
+        window.showToast("Journal gespeichert & Abend beendet.", "success");
+        window.setView('chats');
+    } catch(e) { window.showToast("Fehler beim Speichern.", "error"); }
+};
+
+
 
         window.voteReady = async () => {
             if (!state.currentDrop || state.currentDrop.phase !== 'live') return;
@@ -1278,6 +1317,13 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
                                     <span class="text-xs text-zinc-500 relative z-10">Bereit für echte Verbindung und tiefe Gespräche.</span>
                                 </button>
                             </div>
+                            
+                            <div class="mt-8 w-full max-w-sm">
+    <label class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block text-left">Gentle Icebreaker (Optional)</label>
+    <input id="icebreaker_input" type="text" placeholder="Frag mich nach..." 
+           class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 text-sm shadow-inner">
+</div>
+
                         </div>
                     `;
                 }
@@ -1411,6 +1457,13 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
                                             <input type="checkbox" name="match_selections" value="${p.id}" class="w-5 h-5 accent-amber-500">
                                         </label>
                                     `).join('')}
+                                    
+<div class="mt-8 p-6 bg-zinc-900/50 border border-amber-500/20 rounded-2xl text-left">
+    <h3 class="serif italic text-amber-500 text-lg mb-1">After-Glow Journal</h3>
+    <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">Ein Moment für dich: Wofür bist du heute dankbar?</p>
+    <textarea id="afterglow_journal" placeholder="Schreibe hier deine Gedanken auf..." 
+              class="w-full h-24 bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-300 outline-none focus:border-amber-500/50 transition"></textarea>
+</div>
 
                                     <button onclick="window.submitCredits()" class="w-full bg-zinc-100 text-black font-bold py-4 rounded-xl mt-6 uppercase tracking-widest text-sm hover:bg-white transition">Auswahl speichern</button>
                                 </div>
@@ -1442,6 +1495,14 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
                                     </div>
                                 </div>
                                 <div class="mt-8 space-y-2 border-t border-zinc-800 pt-6">
+                                    
+                                    <div class="mt-6 pt-6 border-t border-zinc-800">
+    <div class="flex gap-2">
+        <button onclick="window.setView('paywall')" class="flex-1 py-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-[10px] text-amber-500 font-bold uppercase">Unlimited</button>
+        <button onclick="window.showToast('Bundle bald verfügbar', 'info')" class="flex-1 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-[10px] text-zinc-400 font-bold uppercase">+5 Tickets</button>
+    </div>
+</div>
+
                                     <button onclick="window.resetPassword()" class="w-full text-left p-3 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition rounded-lg">Passwort zurücksetzen</button>
                                     <button onclick="window.handleLogout()" class="w-full text-left p-3 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition rounded-lg">Ausloggen</button>
                                     <button onclick="window.deleteAcc()" class="w-full text-left p-3 text-sm text-red-500 hover:bg-red-950/50 transition rounded-lg">Account löschen</button>
