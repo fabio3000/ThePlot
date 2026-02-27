@@ -1146,73 +1146,90 @@ function render(force = false) {
                 }
 
                               if (state.view === 'admin') {
-                    let defaultDate = new Date(); defaultDate.setDate(defaultDate.getDate() + 1); defaultDate.setHours(20, 0, 0, 0);
-                    let isoDate = defaultDate.toISOString().slice(0, 16);
+    let defaultDate = new Date(); defaultDate.setDate(defaultDate.getDate() + 1); defaultDate.setHours(20, 0, 0, 0);
+    let isoDate = defaultDate.toISOString().slice(0, 16);
 
-                    html += `
-                        <div class="max-w-2xl mx-auto text-center mb-12 animate-fade-in">
-                            <h1 class="text-4xl serif italic mb-2 gold-text">Director's Dashboard</h1>
-                            <p class="text-zinc-500 text-sm tracking-widest uppercase">Erschaffe Magie. Kontrolliere die Zeit.</p>
+    html += `
+        <div class="max-w-2xl mx-auto text-center mb-12 animate-fade-in pt-10">
+            <h1 class="text-4xl serif italic mb-2 gold-text">Director's Dashboard</h1>
+            <p class="text-zinc-500 text-sm tracking-widest uppercase">Erschaffe Magie. Kontrolliere die Zeit.</p>
+        </div>
+        
+        <div class="max-w-xl mx-auto space-y-6 mb-12">
+            <div class="flex justify-between items-center px-4">
+                <h3 class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Aktive Szenen</h3>
+                <button onclick="window.setApiKey()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1 rounded border border-zinc-800 hover:border-zinc-600 transition uppercase font-bold">🔑 API Key setzen</button>
+            </div>
+            
+            ${state.allDrops.map(d => `
+                <div class="bg-zinc-900/40 backdrop-blur-md p-8 rounded-[32px] border ${d.isActive ? 'border-amber-900/50 shadow-[0_0_30px_rgba(217,119,6,0.1)]' : 'border-zinc-800'} transition-all">
+                    <div class="text-center mb-6">
+                        <div class="text-[10px] uppercase tracking-widest text-amber-600 font-bold mb-1">${d.isActive ? 'Live Drop' : 'Entwurf'}</div>
+                        <h3 class="text-2xl serif italic text-zinc-100">${d.title}</h3>
+                        <div class="text-[10px] text-zinc-500 mt-1 uppercase tracking-tighter">${formatEventDate(d.eventTime)} in ${d.city}</div>
+                    </div>
+                    
+                    <div class="bg-black/20 rounded-2xl p-4 mb-6 border border-white/5">
+                        <div class="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mb-3 text-center">Zeitmaschine (Beta-Tests)</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="window.adminTimeTravel('reveal')" class="py-2 bg-zinc-800/50 text-[9px] text-zinc-400 rounded-lg border border-zinc-700 uppercase font-bold hover:bg-zinc-700 transition">+1h (Reveal)</button>
+                            <button onclick="window.adminTimeTravel('start')" class="py-2 bg-amber-900/40 text-[9px] text-amber-500 rounded-lg border border-amber-700/50 uppercase font-bold hover:bg-amber-800 transition">Event Start</button>
                         </div>
-                        
-                        <div class="max-w-xl mx-auto space-y-6 mb-12">
-                            <div class="flex justify-between items-center px-2">
-                                <h3 class="text-xs uppercase tracking-widest text-zinc-500 font-bold">Aktive Szenen</h3>
-                                <button onclick="window.setApiKey()" class="text-[10px] bg-zinc-900 text-zinc-400 px-3 py-1 rounded border border-zinc-800 hover:border-zinc-600 transition">🔑 API Key setzen</button>
-                            </div>
-                            
-                            ${state.allDrops.map(d => `
-                                <div class="bg-zinc-900/40 backdrop-blur-md p-6 rounded-3xl border ${d.isActive ? 'border-amber-900/50 shadow-[0_0_20px_rgba(217,119,6,0.1)]' : 'border-zinc-800'} transition-all">
-                                    <div class="flex justify-between items-start mb-6">
-                                        <div>
-                                            <div class="text-[10px] uppercase tracking-widest text-amber-600 font-bold mb-1">${d.isActive ? 'Live Drop' : 'Entwurf'}</div>
-                                            <h3 class="text-xl serif italic text-zinc-100">${d.title} <span class="text-zinc-600 text-sm not-italic">in ${d.city}</span></h3>
-                                            <div class="text-[10px] text-zinc-500 mt-1 font-mono">${formatEventDate(d.eventTime)}</div>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button onclick="window.enterAdminLiveView('${d.id}')" class="p-2 bg-zinc-800 text-amber-500 rounded-full border border-zinc-700 hover:bg-zinc-700 transition" title="Live View">👀</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="py-2 text-[9px] uppercase font-bold rounded-lg border ${d.isActive ? 'bg-amber-900/20 border-amber-500 text-amber-500' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}">${d.isActive ? 'Aktiv' : 'Inaktiv'}</button>
-                                        <button onclick="window.editDrop('${d.id}')" class="py-2 bg-zinc-800 border border-zinc-700 text-zinc-300 text-[9px] uppercase font-bold rounded-lg">Edit</button>
-                                        <button onclick="window.deleteDrop('${d.id}')" class="py-2 bg-red-900/10 border border-red-900/30 text-red-500 text-[9px] uppercase font-bold rounded-lg">Löschen</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="window.enterAdminLiveView('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700 hover:bg-zinc-700 transition">👀 Live View</button>
+                        <button onclick="window.editDrop('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700 hover:bg-zinc-700 transition">Edit</button>
+                        <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="px-4 py-3 rounded-xl border ${d.isActive ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-500 border-zinc-800'} transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg></button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
 
-                        <div class="max-w-xl mx-auto bg-zinc-900/20 p-8 rounded-[40px] border border-zinc-800/50 backdrop-blur-sm mb-20">
-                            <div class="flex justify-between items-center mb-8">
-                                <h2 id="admin_form_title" class="text-2xl serif italic text-zinc-200">${state.editingDropId ? 'Szene anpassen' : 'Neuer Drop'}</h2>
-                                <div class="flex gap-2">
-                                    <select id="admin_city" class="bg-zinc-950 border border-zinc-700 text-[10px] uppercase font-bold p-2 rounded-lg outline-none focus:border-amber-500">${CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
-                                    <button id="ai_generate_btn" type="button" onclick="window.generateAIPlot()" class="bg-amber-500 text-black px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tighter hover:bg-white transition">✨ KI Auto-Fill</button>
-                                </div>
-                            </div>
-                            <form onsubmit="window.createDrop(event)" class="space-y-4 text-sm">
-                                <input id="admin_title" required placeholder="Titel" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                <textarea id="admin_vibe" required placeholder="Vibe / Stimmung" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-20 focus:border-amber-500 transition"></textarea>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                    <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                </div>
-                                <div class="flex gap-4">
-                                    <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                    <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <input id="admin_prop" required placeholder="Requisite" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                    <input id="admin_drink" required placeholder="Geheimcode" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition">
-                                </div>
-                                <textarea id="admin_quests" required placeholder="Quests (Jede Zeile eine neue Quest)..." class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-32 focus:border-amber-500 transition"></textarea>
-                                <button type="submit" class="w-full bg-zinc-100 text-black font-black py-5 rounded-2xl mt-4 hover:bg-white transition uppercase tracking-widest text-xs shadow-xl">${state.editingDropId ? 'Änderungen speichern' : 'Szene veröffentlichen'}</button>
-                                ${state.editingDropId ? `<button type="button" onclick="window.cancelEditDrop()" class="w-full text-zinc-500 py-2 text-xs uppercase font-bold">Abbrechen</button>` : ''}
-                            </form>
-                        </div>
-                    `;
-                }
+        <div class="max-w-xl mx-auto grid grid-cols-2 gap-4 mb-12 opacity-60">
+            <div class="p-4 bg-zinc-900/20 border border-zinc-800 rounded-2xl">
+                <div class="text-[8px] uppercase tracking-widest text-amber-500 font-bold mb-1">Coming Soon</div>
+                <div class="text-[10px] text-zinc-300 font-bold">Director's Cut Membership</div>
+                <div class="text-[9px] text-zinc-500 mt-1 leading-tight">Exklusive Rollen & Geheime Orte.</div>
+            </div>
+            <div class="p-4 bg-zinc-900/20 border border-zinc-800 rounded-2xl">
+                <div class="text-[8px] uppercase tracking-widest text-amber-500 font-bold mb-1">In Entwicklung</div>
+                <div class="text-[10px] text-zinc-300 font-bold">Viral Vibe Cards</div>
+                <div class="text-[9px] text-zinc-500 mt-1 leading-tight">Alias als Story-Asset teilen.</div>
+            </div>
+        </div>
+
+        <div class="max-w-xl mx-auto bg-zinc-900/20 p-10 rounded-[40px] border border-zinc-800/50 backdrop-blur-sm mb-20">
+            <div class="flex justify-between items-center mb-10">
+                <h2 id="admin_form_title" class="text-2xl serif italic text-zinc-200">${state.editingDropId ? 'Szene anpassen' : 'Neuer Drop'}</h2>
+                <div class="flex gap-2">
+                    <select id="admin_city" class="bg-zinc-950 border border-zinc-700 text-[10px] uppercase font-bold p-2 rounded-lg outline-none focus:border-amber-500">${CITIES.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+                    <button id="ai_generate_btn" type="button" onclick="window.generateAIPlot()" class="bg-amber-500 text-black px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white transition">✨ KI Auto-Fill</button>
+                </div>
+            </div>
+            <form onsubmit="window.createDrop(event)" class="space-y-4">
+                <input id="admin_title" required placeholder="Titel" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
+                <textarea id="admin_vibe" required placeholder="Vibe / Storytelling" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-24 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
+                    <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
+                </div>
+                <div class="flex gap-4">
+                    <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
+                    <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center text-sm font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="admin_prop" required placeholder="Die Requisite" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
+                    <input id="admin_drink" required placeholder="Geheimcode" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
+                </div>
+                <textarea id="admin_quests" required placeholder="Quests (Jede Zeile eine neue Quest)..." class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-40 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
+                <button type="submit" class="w-full bg-zinc-100 text-black font-black py-6 rounded-2xl mt-6 hover:bg-white transition uppercase tracking-widest text-xs shadow-2xl">${state.editingDropId ? 'Änderungen speichern' : 'Drop veröffentlichen'}</button>
+                ${state.editingDropId ? `<button type="button" onclick="window.cancelEditDrop()" class="w-full text-zinc-600 py-2 text-[10px] uppercase font-bold tracking-widest">Abbrechen</button>` : ''}
+            </form>
+        </div>
+    `;
+}
+
 
                 else if (state.view === 'chats') {
                                         if(state.openChatId) {
@@ -1618,12 +1635,14 @@ function render(force = false) {
                                             <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1">Your Alias</div>
                                             <div class="font-serif italic text-lg text-zinc-200">${state.profile?.alias || 'The Stranger'}</div>
                                         </div>
-                                        <button onclick="window.regenerateAlias()" class="text-xs bg-amber-900/50 text-amber-400 px-3 py-1.5 rounded hover:bg-amber-800/50 transition border border-amber-700/50">Reroll</button> <button onclick="window.generateShareCard()" class="w-full mt-2 py-3 bg-zinc-100 text-black rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg flex items-center justify-center gap-2">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-    Share my Alias Card
-</button>
+                                        <button onclick="window.regenerateAlias()" class="text-xs bg-amber-900/50 text-amber-400 px-3 py-1.5 rounded hover:bg-amber-800/50 transition border border-amber-700/50">Reroll</button> 
 
                                     </div>
+                                    <button onclick="window.generateShareCard()" class="w-full mt-4 py-4 bg-amber-900/10 text-amber-500 rounded-2xl font-bold uppercase text-[10px] tracking-widest border border-amber-900/30 hover:bg-amber-900/20 transition flex items-center justify-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+    Export Alias Card
+</button>
+
                                 </div>
                                 <div class="mt-8 space-y-2 border-t border-zinc-800 pt-6">
                                     
