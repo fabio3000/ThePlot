@@ -1386,10 +1386,19 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 }
 
 
-                                            else if (state.view === 'paywall') {
-                    // Sicherheits-Fallback, falls der Preis einen Moment zum Laden braucht
+                                                     else if (state.view === 'paywall') {
                     const displayPrice = state.bundlePrice ? state.bundlePrice.replace('.', ',') : '19,00';
                     const checkoutPrice = state.bundlePrice || '19.00';
+
+                    // --- NEU: ANTI-FLICKER SCHUTZ ---
+                    // Wenn der Button schon auf dem Bildschirm existiert, 
+                    // aktualisieren wir nur den Preis und stoppen das Neu-Zeichnen!
+                    if (document.getElementById('paypal-button-container')) {
+                        const priceEl = document.getElementById('dynamic-price-display');
+                        if (priceEl) priceEl.innerText = displayPrice + ' €';
+                        return; // Bricht das Render hier sicher ab
+                    }
+                    // --------------------------------
 
                     html += `
                         <div class="text-center p-6 animate-fade-in flex flex-col items-center">
@@ -1401,7 +1410,9 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                             
                             <div class="bg-zinc-900/50 border border-amber-500/30 p-6 rounded-[32px] mb-6 w-full max-w-sm backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                                 <div class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold mb-2">Director's Bundle</div>
-                                <div class="text-4xl font-black text-white mb-2">${displayPrice} €</div>
+                                
+                                <div id="dynamic-price-display" class="text-4xl font-black text-white mb-2">${displayPrice} €</div>
+                                
                                 <div class="text-[10px] text-amber-500/70 mb-6 font-mono tracking-widest">+5 EXTRA TICKETS</div>
                                 
                                 <div id="paypal-button-container" class="w-full min-h-[150px] relative z-50 flex items-center justify-center"></div>
@@ -1434,6 +1445,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         }
                     }, 100);
                 }
+
 
 
 
