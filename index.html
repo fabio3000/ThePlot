@@ -1002,50 +1002,7 @@ window.initPayPal = (price, description, isBundle = false) => {
 };
 
                 
-                container.innerHTML = ''; // Vorher leeren
                 
-                if (window.paypal && window.paypal.Buttons) {
-                    window.paypal.Buttons({
-                        createOrder: (data, actions) => {
-                            return actions.order.create({
-                                purchase_units: [{
-                                    description: "Director's Cut Premium",
-                                    amount: { currency_code: "EUR", value: "49.00" }
-                                }]
-                            });
-                        },
-                        onApprove: (data, actions) => {
-                            return actions.order.capture().then(() => {
-                                window.unlockPremium();
-                            });
-                        },
-                        onError: (err) => {
-                            console.error("PayPal Error:", err);
-                            window.showToast("PayPal konnte nicht geladen werden.", "error");
-                        }
-                    }).render('#paypal-button-container');
-                } else {
-                    // Fallback, falls Script-Blocker aktiv sind
-                    container.innerHTML = `<button onclick="window.unlockPremium()" class="w-full bg-amber-600 py-4 rounded-xl font-bold uppercase text-xs shadow-lg">Upgrade jetzt aktivieren (Demo)</button>`;
-                }
-            }, 500); // 500ms geben dem Browser genug Zeit zum Rendern
-            
-        } else {
-            // Normaler Buchungsprozess
-            const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
-            await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
-            await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { 
-                spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) 
-            });
-            state.hasTicket = true; 
-            state.view = 'ticket'; 
-            render();
-            window.showToast("Ticket erfolgreich gesichert.", "success");
-        }
-    } catch (err) {
-        window.showToast("Fehler: " + err.message, "error");
-    }
-};
 
 
 window.buyBundle = () => {
