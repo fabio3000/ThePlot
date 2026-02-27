@@ -932,33 +932,69 @@ window.setSocialBattery = async (level) => {
         };
 
         window.claimTicket = async () => {
-            try {
-                if (!state.profile?.hasPremium && state.profile?.tickets && state.profile.tickets.length >= 1) {
-                    state.view = 'paywall'; render();
-                    setTimeout(() => {
-                        if (window.paypal) {
-                            document.getElementById('paypal-button-container').innerHTML = '';
-                            paypal.Buttons({
-                                createOrder: (data, actions) => actions.order.create({ purchase_units: [{ description: "Director's Cut", amount: { currency_code: "EUR", value: "49.00" } }] }),
-                                onApprove: (data, actions) => actions.order.capture().then(() => window.unlockPremium())
-                            }).render('#paypal-button-container');
-                        } else {
-                            document.getElementById('paypal-button-container').innerHTML = `<button onclick="window.unlockPremium()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(217,119,6,0.4)]">[Demo] Freischalten</button>`;
+    try {
+        // Logik: Falls kein Premium vorhanden und bereits ein Ticket existiert -> Paywall anzeigen
+        if (!state.profile?.hasPremium && state.profile?.tickets && state.profile.tickets.length >= 1) {
+            state.view = 'paywall'; 
+            render();
+            
+            // Kurze Verzögerung für das DOM-Rendering der Paywall
+            setTimeout(() => {
+                const container = document.getElementById('paypal-button-container');
+                if (!container) return;
+                
+                container.innerHTML = ''; // Container leeren, um Doppel-Buttons zu vermeiden
+                
+                if (window.paypal) {
+                    window.paypal.Buttons({
+                        createOrder: (data, actions) => {
+                            return actions.order.create({
+                                purchase_units: [{
+                                    description: "Director's Cut Subscription",
+                                    amount: { currency_code: "EUR", value: "49.00" }
+                                }]
+                            });
+                        },
+                        onApprove: (data, actions) => {
+                            return actions.order.capture().then(() => {
+                                window.unlockPremium();
+                            });
+                        },
+                        onError: (err) => {
+                            window.showToast("PayPal-Zahlung fehlgeschlagen.", "error");
                         }
-                    }, 100);
+                    }).render('#paypal-button-container');
                 } else {
-                    const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
-                    await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
-                    await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) });
-                    state.hasTicket = true; 
-                    state.view = 'ticket'; 
-                    render();
-                    window.showToast("Ticket erfolgreich gesichert.", "success");
+                    // Fallback-Button mit dem Glow-Effekt aus dem zweiten Entwurf
+                    container.innerHTML = `
+                        <button onclick="window.unlockPremium()" 
+                                class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(217,119,6,0.4)] uppercase tracking-widest text-xs">
+                            Upgrade aktivieren (Demo)
+                        </button>`;
                 }
-            } catch (err) {
-                window.showToast("Fehler bei der Buchung: " + err.message, "error");
-            }
-        };
+            }, 100); // Schnellere Reaktion für besseres UI-Feeling
+            
+        } else {
+            // Normaler Buchungsprozess (Free oder Premium-User)
+            const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
+            
+            // Update in Firebase
+            await setDoc(doc(db, 'plot_users', state.user.uid), { tickets: newTickets }, { merge: true });
+            await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { 
+                spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) 
+            });
+            
+            state.hasTicket = true; 
+            state.view = 'ticket'; 
+            render();
+            window.showToast("Ticket erfolgreich gesichert.", "success");
+        }
+    } catch (err) {
+        console.error("Claim Error:", err);
+        window.showToast("Fehler bei der Buchung: " + err.message, "error");
+    }
+};
+
 
         window.unlockPremium = async () => {
             await setDoc(doc(db, 'plot_users', state.user.uid), { hasPremium: true }, { merge: true });
@@ -1207,21 +1243,48 @@ window.setSocialBattery = async (level) => {
                         </div>
                     `;
                 }
-                else if (state.view === 'paywall') {
-                    html += `
-                        <div class="text-center mb-8"><h1 class="text-3xl serif italic mb-3">Join the Director's Cut</h1><p class="text-zinc-400 text-sm leading-relaxed">Sichere dir Exklusivität. Keine Dating-App Erschöpfung mehr. Echte Begegnungen.</p></div>
-                        <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-8 backdrop-blur-md mb-6 shadow-2xl">
-                            <div class="text-4xl font-light text-center mb-6 serif italic">49€ <span class="text-sm font-sans text-zinc-500 not-italic">/ month</span></div>
-                            <ul class="space-y-4 text-sm text-zinc-300 mb-8">
-                                <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Unlimited Drop Tickets</li>
-                                <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Premium Aliases</li>
-                                <li class="flex items-center gap-3"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Safe In-App "Soft Connection" Messaging</li>
-                            </ul>
-                            <div id="paypal-button-container" class="w-full min-h-[150px]"></div>
-                        </div>
-                        <button onclick="window.setView('home')" class="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">Maybe later</button>
-                    `;
-                }
+             else if (state.view === 'paywall') {
+    html += `
+        <div class="text-center mb-8 animate-fade-in">
+            <h1 class="text-3xl serif italic mb-3 gold-text">Join the Director's Cut</h1>
+            <p class="text-zinc-400 text-sm leading-relaxed max-w-[280px] mx-auto">
+                Sichere dir Exklusivität. Keine Dating-App Erschöpfung mehr. Echte Begegnungen.
+            </p>
+        </div>
+
+        <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-8 backdrop-blur-md mb-6 shadow-2xl paper-texture">
+            <div class="text-4xl font-light text-center mb-6 serif italic text-zinc-100">
+                49€ <span class="text-sm font-sans text-zinc-500 not-italic">/ lifetime</span>
+            </div>
+            
+            <ul class="space-y-4 text-sm text-zinc-300 mb-8">
+                <li class="flex items-center gap-3">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
+                    Unlimited Drop Tickets
+                </li>
+                <li class="flex items-center gap-3">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
+                    Premium Aliases
+                </li>
+                <li class="flex items-center gap-3">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 
+                    Safe "Soft Connection" Messaging
+                </li>
+            </ul>
+
+            <div id="paypal-button-container" class="w-full min-h-[150px] flex flex-col justify-center">
+                <div class="animate-pulse text-zinc-500 text-xs text-center font-mono tracking-widest uppercase">
+                    Sekunde, wir laden den Projektor...
+                </div>
+            </div>
+        </div>
+
+        <button onclick="window.setView('home')" class="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">
+            Vielleicht später
+        </button>
+    `;
+}
+
                 else if (state.view === 'ticket') {
                     const isTorn = localStorage.getItem(`torn_${state.user?.uid}_${state.currentDrop.id}`) === 'true';
                     const now = Date.now() + state.devTimeOffset;
