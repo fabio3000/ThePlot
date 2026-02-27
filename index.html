@@ -277,66 +277,101 @@ window.generateShareCard = () => {
     canvas.width = 1080;
     canvas.height = 1920;
 
-    // Aktuelle Zeit-Daten für das Branding
+    const alias = state.profile?.alias || "The Stranger";
     const now = new Date();
-    const currentYear = now.getFullYear(); // Zieht dynamisch 2026
-    const formattedDate = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const currentYear = now.getFullYear();
 
-    // 1. Tiefschwarzer Hintergrund (OLED Ready)
+    // --- SMART COLOR & VIBE ENGINE ---
+    let primaryColor = '#ffffff';
+    let accentColor = '#3f3f46';
+    let overlayEffect = 'none';
+
+    // Logik basierend auf den Adjektiven
+    if (alias.includes("Silent") || alias.includes("Midnight") || alias.includes("Quiet")) {
+        accentColor = '#1e3a8a'; // Tiefblau
+    } else if (alias.includes("Golden") || alias.includes("Bright") || alias.includes("Crimson")) {
+        accentColor = '#991b1b'; // Samtrot / Gold
+        primaryColor = '#fef3c7';
+    } else if (alias.includes("Electric") || alias.includes("Neon")) {
+        accentColor = '#06b6d4'; // Cyan/Neon
+        overlayEffect = 'glitch';
+    } else if (alias.includes("Ethereal") || alias.includes("Cosmic") || alias.includes("Astral")) {
+        accentColor = '#7c3aed'; // Violett
+        overlayEffect = 'nebula';
+    }
+
+    // 1. Background Base
     ctx.fillStyle = '#09090b';
     ctx.fillRect(0, 0, 1080, 1920);
 
-    // 2. High-Quality Film Grain (TikTok Grain Texture)
-    ctx.globalAlpha = 0.15;
-    for (let i = 0; i < 40000; i++) {
-        ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctx.fillRect(Math.random() * 1080, Math.random() * 1920, 2, 2);
+    // 2. Dynamic Aura / Nebula
+    const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1000);
+    grad.addColorStop(0, accentColor + '33'); // 20% Opacity des Akzents
+    grad.addColorStop(1, '#09090b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // 3. Texture Overlay
+    ctx.globalAlpha = 0.1;
+    if (overlayEffect === 'glitch') {
+        for(let i=0; i<50; i++) {
+            ctx.fillStyle = primaryColor;
+            ctx.fillRect(Math.random()*1080, Math.random()*1920, Math.random()*300, 2);
+        }
+    } else if (overlayEffect === 'nebula') {
+        for(let i=0; i<200; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random()*1080, Math.random()*1920, Math.random()*4, 0, Math.PI*2);
+            ctx.fillStyle = primaryColor;
+            ctx.fill();
+        }
     }
     ctx.globalAlpha = 1.0;
 
-    // 3. Subtiles Glühen hinter dem Namen
-    const aura = ctx.createRadialGradient(540, 960, 0, 540, 960, 600);
-    aura.addColorStop(0, 'rgba(251, 191, 36, 0.05)');
-    aura.addColorStop(1, 'transparent');
-    ctx.fillStyle = aura;
-    ctx.fillRect(0, 0, 1080, 1920);
-
-    // 4. Branding "The Plot."
-    ctx.fillStyle = '#f4f4f5';
-    ctx.font = 'italic 700 80px "Playfair Display", serif';
+    // 4. Movie Branding
+    ctx.fillStyle = primaryColor;
+    ctx.globalAlpha = 0.4;
+    ctx.font = 'italic 400 60px "Playfair Display", serif';
     ctx.textAlign = 'center';
-    ctx.fillText('The Plot.', 540, 300);
+    ctx.fillText('A Solo-Date Experience', 540, 300);
+    ctx.globalAlpha = 1.0;
 
-    // 5. Der Alias als Main Title (Serif Elegance)
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'italic 700 110px "Playfair Display", serif';
-    ctx.fillText(state.profile?.alias || 'The Stranger', 540, 960);
+    // 5. The Alias (Main Character)
+    ctx.shadowColor = accentColor;
+    ctx.shadowBlur = 20;
+    ctx.font = 'italic 700 120px "Playfair Display", serif';
+    ctx.fillText(alias, 540, 960);
+    ctx.shadowBlur = 0;
 
-    // 6. Cineastische Credit-Line
-    ctx.fillStyle = '#71717a';
-    ctx.font = '400 35px "Inter", sans-serif';
-    ctx.letterSpacing = "15px";
-    ctx.fillText('ROLE ASSIGNED', 540, 1050);
-
-    // 7. Footer - Dynamische Daten
-    ctx.fillStyle = '#3f3f46';
-    ctx.letterSpacing = "3px";
-    ctx.font = '700 28px "Inter", sans-serif';
-    ctx.textAlign = 'center';
+    // 6. Detailed Metadata (Bottom)
+    ctx.fillStyle = primaryColor;
+    ctx.font = '700 24px "Inter", sans-serif';
+    ctx.letterSpacing = "6px";
     
-    // Untere Credits im Movie-Stil
-    ctx.fillText(`PRODUCED IN ${state.selectedCity.toUpperCase()} • ${currentYear}`, 540, 1750);
-    ctx.font = '400 22px "Inter", sans-serif';
-    ctx.fillText(`SCENE DATE: ${formattedDate} • ENTRANCE GRANTED`, 540, 1810);
+    // Nomen-Logik für Untertitel
+    let subline = "ENTRANCE GRANTED";
+    if (alias.includes("Alchemist") || alias.includes("Oracle")) subline = "TRANSFORMATION IN PROGRESS";
+    if (alias.includes("Observer") || alias.includes("Thinker")) subline = "DEEP FOCUS ACTIVE";
+    
+    ctx.fillText(subline, 540, 1050);
 
-    // Download-Trigger
+    // 7. Credits Block
+    ctx.fillStyle = '#52525b';
+    ctx.font = '500 20px "Inter", sans-serif';
+    ctx.letterSpacing = "2px";
+    const footerY = 1750;
+    ctx.fillText(`SCENE: ${state.selectedCity.toUpperCase()} // YEAR: ${currentYear}`, 540, footerY);
+    ctx.fillText(`ID: ${state.user.uid.substring(0,8).toUpperCase()} // STATUS: MAIN CHARACTER`, 540, footerY + 50);
+
+    // Download
     const dataUrl = canvas.toDataURL('image/png');
     const link = document.createElement('a');
-    link.download = `ThePlot_${state.profile?.alias}_${currentYear}.png`;
+    link.download = `ThePlot_Identity_${alias}.png`;
     link.href = dataUrl;
     link.click();
-    window.showToast("Cineastische Card generiert.", "success");
+    window.showToast(`${alias} Card generiert.`, "success");
 };
+
 
 
         window.setApiKey = () => {
