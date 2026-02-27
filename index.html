@@ -1127,6 +1127,11 @@ function render(force = false) {
 
 
     try {
+        // --- NEU: Archiv-Logik ---
+const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+const activeDrops = state.allDrops.filter(d => d.eventTime > sevenDaysAgo);
+const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
+
         if (state.view === 'loading') {
 
                     appDiv.innerHTML = `<div class="text-center mt-40 flex flex-col items-center"><div class="w-16 h-16 border-t-2 border-l-2 border-amber-500 rounded-full animate-spin mb-6"></div><div class="text-2xl serif italic text-zinc-400">Loading your scene...</div></div>`;
@@ -1181,13 +1186,24 @@ function render(force = false) {
             <p class="text-zinc-500 text-sm tracking-widest uppercase">Erschaffe Magie. Kontrolliere die Zeit.</p>
         </div>
         
+        <div class="max-w-xl mx-auto bg-amber-900/5 border border-amber-900/30 p-6 rounded-[32px] mb-8 backdrop-blur-sm">
+            <div class="text-[10px] uppercase tracking-widest text-amber-600 font-black mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Live Broadcast
+            </div>
+            <div class="flex gap-2">
+                <input id="broadcast_input" type="text" placeholder="Regieanweisung senden..." 
+                       class="flex-1 bg-black/40 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-amber-500 transition">
+                <button onclick="window.sendBroadcast()" class="bg-amber-500 text-black px-6 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition shadow-lg">Senden</button>
+            </div>
+        </div>
+
         <div class="max-w-xl mx-auto space-y-6 mb-12">
             <div class="flex justify-between items-center px-4">
-                <h3 class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Aktive Szenen</h3>
-                <button onclick="window.setApiKey()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1 rounded border border-zinc-800 hover:border-zinc-600 transition uppercase font-bold">🔑 API Key setzen</button>
+                <h3 class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Aktuelle Szenen</h3>
+                <button onclick="window.setApiKey()" class="text-[9px] bg-zinc-900 text-zinc-400 px-3 py-1 rounded border border-zinc-800 hover:border-zinc-600 transition uppercase font-bold">🔑 API Key</button>
             </div>
             
-            ${state.allDrops.map(d => `
+            ${activeDrops.length > 0 ? activeDrops.map(d => `
                 <div class="bg-zinc-900/40 backdrop-blur-md p-8 rounded-[32px] border ${d.isActive ? 'border-amber-900/50 shadow-[0_0_30px_rgba(217,119,6,0.1)]' : 'border-zinc-800'} transition-all">
                     <div class="text-center mb-6">
                         <div class="text-[10px] uppercase tracking-widest text-amber-600 font-bold mb-1">${d.isActive ? 'Live Drop' : 'Entwurf'}</div>
@@ -1196,38 +1212,43 @@ function render(force = false) {
                     </div>
                     
                     <div class="bg-black/20 rounded-2xl p-4 mb-6 border border-white/5">
-                        <div class="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mb-3 text-center">Zeitmaschine (Beta-Tests)</div>
+                        <div class="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mb-3 text-center">Zeitmaschine</div>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="window.adminTimeTravel('reveal')" class="py-2 bg-zinc-800/50 text-[9px] text-zinc-400 rounded-lg border border-zinc-700 uppercase font-bold hover:bg-zinc-700 transition">+1h (Reveal)</button>
-                            <button onclick="window.adminTimeTravel('start')" class="py-2 bg-amber-900/40 text-[9px] text-amber-500 rounded-lg border border-amber-700/50 uppercase font-bold hover:bg-amber-800 transition">Event Start</button>
+                            <button onclick="window.adminTimeTravel('reveal')" class="py-2 bg-zinc-800/50 text-[9px] text-zinc-400 rounded-lg border border-zinc-700 uppercase font-bold">Reveal</button>
+                            <button onclick="window.adminTimeTravel('start')" class="py-2 bg-amber-900/40 text-[9px] text-amber-500 rounded-lg border border-amber-700/50 uppercase font-bold">Event Start</button>
                         </div>
                     </div>
                     
-                    <div class="max-w-xl mx-auto bg-amber-900/5 border border-amber-900/30 p-6 rounded-[32px] mb-8 backdrop-blur-sm">
-    <div class="text-[10px] uppercase tracking-widest text-amber-600 font-black mb-4 flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Live Broadcast
-    </div>
-    <div class="flex gap-2">
-        <input id="broadcast_input" type="text" placeholder="Sende eine Anweisung an alle..." 
-               class="flex-1 bg-black/40 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-amber-500 transition">
-        <button onclick="window.sendBroadcast()" class="bg-amber-500 text-black px-6 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white transition">Senden</button>
-    </div>
-</div>
+                    <div class="flex gap-2">
+                        <button onclick="window.enterAdminLiveView('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700">👀 Live</button>
+                        <button onclick="window.editDrop('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700">Edit</button>
+                        <button onclick="window.deleteDrop('${d.id}')" class="px-4 py-3 rounded-xl border border-red-900/30 bg-red-900/10 text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="px-4 py-3 rounded-xl border ${d.isActive ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-500 border-zinc-800'} transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg></button>
+                    </div>
+                </div>
+            `).join('') : '<p class="text-center text-zinc-600 text-xs py-10 italic">Keine aktuellen Szenen.</p>'}
 
-                  <div class="flex gap-2">
-    <button onclick="window.enterAdminLiveView('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700 hover:bg-zinc-700 transition">👀 Live View</button>
-    <button onclick="window.editDrop('${d.id}')" class="flex-1 py-3 bg-zinc-800/80 text-zinc-300 text-[10px] uppercase font-bold rounded-xl border border-zinc-700 hover:bg-zinc-700 transition">Edit</button>
-    
-    <button onclick="window.deleteDrop('${d.id}')" class="px-4 py-3 rounded-xl border border-red-900/30 bg-red-900/10 text-red-500 hover:bg-red-900/20 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-    </button>
-
-    <button onclick="window.toggleDropActive('${d.id}', ${d.isActive})" class="px-4 py-3 rounded-xl border ${d.isActive ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-500 border-zinc-800'} transition">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
-    </button>
-</div>
-
-            `).join('')}
+            ${archivedDrops.length > 0 ? `
+                <div class="pt-10">
+                    <details class="group">
+                        <summary class="flex justify-between items-center px-4 cursor-pointer list-none opacity-40 hover:opacity-100 transition">
+                            <h3 class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold italic">Archivierte Produktionen</h3>
+                            <span class="text-zinc-500 group-open:rotate-180 transition-transform">↓</span>
+                        </summary>
+                        <div class="mt-6 space-y-4 opacity-40 grayscale">
+                            ${archivedDrops.map(d => `
+                                <div class="bg-zinc-950 p-4 rounded-2xl border border-zinc-900 flex justify-between items-center">
+                                    <div class="text-left">
+                                        <div class="text-white text-sm font-bold">${d.title}</div>
+                                        <div class="text-zinc-500 text-[9px] uppercase tracking-widest">${d.city} • ${formatEventDate(d.eventTime)}</div>
+                                    </div>
+                                    <button onclick="window.deleteDrop('${d.id}')" class="p-2 text-red-900 hover:text-red-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                </div>
+            ` : ''}
         </div>
 
         <div class="max-w-xl mx-auto grid grid-cols-2 gap-4 mb-12 opacity-60">
@@ -1243,7 +1264,7 @@ function render(force = false) {
             </div>
         </div>
 
-        <div class="max-w-xl mx-auto bg-zinc-900/20 p-10 rounded-[40px] border border-zinc-800/50 backdrop-blur-sm mb-20">
+        <div class="max-w-xl mx-auto bg-zinc-900/20 p-10 rounded-[40px] border border-zinc-800/50 backdrop-blur-sm mb-20 shadow-2xl">
             <div class="flex justify-between items-center mb-10">
                 <h2 id="admin_form_title" class="text-2xl serif italic text-zinc-200">${state.editingDropId ? 'Szene anpassen' : 'Neuer Drop'}</h2>
                 <div class="flex gap-2">
@@ -1273,6 +1294,7 @@ function render(force = false) {
         </div>
     `;
 }
+
 
 
                 else if (state.view === 'chats') {
