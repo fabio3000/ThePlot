@@ -393,147 +393,81 @@ async function generateUniqueAlias() {
             if(countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
         }
 
-        try {
+                try {
             appInit = initializeApp(firebaseConfig);
             auth = getAuth(appInit);
             db = getFirestore(appInit);
             
             onAuthStateChanged(auth, async (user) => {
-    state.user = user;
-    if (user) {
-        clearListeners();
+                state.user = user;
+                if (user) {
+                    clearListeners();
 
-        // 1. Profil-Snapshot mit sofortigem Loading-Stop
-        const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
-            if (docSnap.exists()) {
-                state.profile = docSnap.data();
-                state.selectedCity = state.profile.city || state.selectedCity;
-                
-                // WICHTIG: Wenn wir eingeloggt sind, beenden wir das Loading sofort
-                if (state.view === 'loading') {
-                    state.view = 'home'; 
+                    // 1. Profil-Snapshot
+                    const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
+                        if (docSnap.exists()) {
+                            state.profile = docSnap.data();
+                            state.selectedCity = state.profile.city || state.selectedCity;
+                            
+                            if (state.view === 'loading') {
+                                state.view = 'home'; 
+                            }
+                            checkRouting();
+                            render(true);
+                        } else if (!isRegistering) {
+                            state.profile = { 
+                                hasPremium: false, tickets: [], completedDrops: [], 
+                                alias: "The Stranger", isAdmin: false, city: state.selectedCity,
+                                extraTickets: 0, monthlyTicketsUsed: 0
+                            };
+                            setDoc(doc(db, 'plot_users', user.uid), state.profile);
+                            state.view = 'home';
+                            render(true);
+                        }
+                    });
+                    unsubs.push(unsubProfile);
+
+                    // 2. Drops-Snapshot
+                    const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
+                        const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                        state.allDrops = allDrops;
+                        
+                        const completed = state.profile?.completedDrops || [];
+                        
+                        state.currentDrop = allDrops.find(d => {
+                            if (!d.isActive || d.city !== state.selectedCity || completed.includes(d.id)) return false;
+                            const hasTicket = state.profile?.tickets?.includes(d.id);
+                            if ((d.phase === 'credits' || d.phase === 'finale') && !hasTicket) return false;
+                            return true;
+                        }) || null;
+                        
+                        if(state.currentDrop) {
+                            state.hasTicket = state.profile?.tickets?.includes(state.currentDrop.id) || false;
+                            if (window.unsubChat) window.unsubChat();
+                            window.unsubChat = onSnapshot(collection(db, `plot_messages_${state.currentDrop.id}`), (msgSnap) => {
+                                state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
+                                if(state.view === 'room') { render(); scrollToBottom(); }
+                            });
+                            if(!countdownInterval) countdownInterval = setInterval(automatedPacingLogic, 1000);
+                        }
+                        
+                        checkRouting();
+                        render();
+                    });
+                    unsubs.push(unsubDrops);
+
+                } else {
+                    // Nicht eingeloggt
+                    clearListeners();
+                    state.user = null; state.profile = null;
+                    state.view = 'auth'; 
+                    render(true);
                 }
-                checkRouting();
-                render(true); // Erzwingt das Update der UI
-            } else if (!isRegistering) {
-                // Falls Profil noch nicht existiert (z.B. neuer User), erstellen wir es
-                state.profile = { 
-                    hasPremium: false, tickets: [], completedDrops: [], 
-                    alias: "The Stranger", isAdmin: false, city: state.selectedCity,
-                    extraTickets: 0, monthlyTicketsUsed: 0
-                };
-                setDoc(doc(db, 'plot_users', user.uid), state.profile);
-                state.view = 'home';
-                render(true);
-            }
-        });
-        unsubs.push(unsubProfile);
+            });
+        } catch(error) { 
+            window.showToast("Systemfehler: " + error.message, "error"); 
+        }
 
-        // 2. Drops-Snapshot (Szenen laden)
-        const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
-            const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            state.allDrops = allDrops;
-            
-            const completed = state.profile?.completedDrops || [];
-            
-            state.currentDrop = allDrops.find(d => {
-                if (!d.isActive || d.city !== state.selectedCity || completed.includes(d.id)) return false;
-                const hasTicket = state.profile?.tickets?.includes(d.id);
-                if ((d.phase === 'credits' || d.phase === 'finale') && !hasTicket) return false;
-                return true;
-            }) || null;
-            
-            if(state.currentDrop) {
-                state.hasTicket = state.profile?.tickets?.includes(state.currentDrop.id) || false;
-                if (window.unsubChat) window.unsubChat();
-                window.unsubChat = onSnapshot(collection(db, `plot_messages_${state.currentDrop.id}`), (msgSnap) => {
-                    state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
-                    if(state.view === 'room') { render(); scrollToBottom(); }
-                });
-                if(!countdownInterval) countdownInterval = setInterval(automatedPacingLogic, 1000);
-            }
-            
-            checkRouting();
-            render();
-        });
-        unsubs.push(unsubDrops);
-
-    } else {
-        // Nicht eingeloggt -> Zeige Auth-Screen
-        clearListeners();
-        state.user = null; state.profile = null;
-        state.view = 'auth'; 
-        render(true);
-    }
-});
-
-        unsubs.push(unsubProfile);
-
-        // 2. Drops-Snapshot (Logik für aktive Szenen)
-        const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
-            const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            state.allDrops = allDrops;
-            
-            const completed = state.profile?.completedDrops || [];
-            
-            state.currentDrop = allDrops.find(d => {
-                if (!d.isActive) return false;
-                if (d.city !== state.selectedCity) return false;
-                if (completed.includes(d.id)) return false;
-                
-                const hasTicketForThis = state.profile?.tickets?.includes(d.id);
-                if (d.phase === 'credits' && !hasTicketForThis) return false;
-                if (d.phase === 'finale' && !hasTicketForThis) return false;
-                
-                return true;
-            }) || null;
-            
-            if(state.currentDrop) {
-                state.hasTicket = state.profile?.tickets?.includes(state.currentDrop.id) || false;
-                
-                if (window.unsubChat) window.unsubChat();
-                window.unsubChat = onSnapshot(collection(db, `plot_messages_${state.currentDrop.id}`), (msgSnap) => {
-                    state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
-                    if(state.view === 'room' && state.currentDrop.phase === 'lobby') { 
-                        render(); 
-                        scrollToBottom(); 
-                    }
-                });
-
-                if(!countdownInterval) {
-                    countdownInterval = setInterval(automatedPacingLogic, 1000);
-                }
-            } else {
-                if (window.unsubChat) { window.unsubChat(); window.unsubChat = null; }
-                state.messages = [];
-            }
-            
-            // Logik für Chat-Archiv
-            if(state.openChatId && state.view === 'chats') {
-                 if (window.unsubChat) window.unsubChat();
-                 window.unsubChat = onSnapshot(collection(db, `plot_messages_${state.openChatId}`), (msgSnap) => {
-                    state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
-                    render(); 
-                    scrollToBottom();
-                });
-            }
-
-            checkRouting();
-            render();
-        });
-        unsubs.push(unsubDrops);
-
-    } else {
-        // Nicht eingeloggt -> Zurück zum Start
-        clearListeners();
-        state.user = null; 
-        state.profile = null; 
-        state.currentDrop = null; 
-        state.hasTicket = false;
-        state.view = 'auth'; 
-        render(true);
-    }
-});
 
         } catch(error) { window.showToast("Systemfehler: " + error.message, "error"); }
 
