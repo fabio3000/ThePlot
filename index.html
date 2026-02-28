@@ -1457,7 +1457,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                 }
 
 
-                else if (state.view === 'share') {
+                             else if (state.view === 'share') {
                     const drop = state.currentDrop;
                     if(!drop) { window.setView('home'); return; }
 
@@ -1466,54 +1466,86 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 
                     html += `
                         <div class="p-6 pt-12 animate-fade-in flex flex-col items-center min-h-screen pb-32">
-                            <div class="flex items-center justify-between w-full max-w-sm mb-8">
+                            <div class="flex items-center justify-between w-full max-w-sm mb-6">
                                 <button onclick="window.setView('ticket')" class="text-zinc-600 hover:text-white transition">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                                 </button>
-                                <h1 class="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Share your Plot</h1>
+                                <h1 class="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-bold">Story Export</h1>
                                 <div class="w-6"></div>
                             </div>
 
-                            <div id="share-card" class="w-full max-w-sm aspect-square bg-zinc-950 rounded-[40px] border border-amber-900/40 shadow-2xl p-8 flex flex-col justify-between relative overflow-hidden mb-10 pointer-events-none">
-                                <div class="absolute -top-20 -right-20 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"></div>
+                            <div id="share-card" class="w-full max-w-xs aspect-[9/16] bg-zinc-950 rounded-[40px] border border-amber-900/40 shadow-2xl p-7 flex flex-col justify-between relative overflow-hidden mb-8 pointer-events-none">
                                 
-                                <div class="relative z-10">
-                                    <div class="flex items-center gap-3 mb-6">
-                                        <div class="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center border border-amber-500/20">
-                                            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                                        </div>
-                                        <div>
-                                            <div class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Solo Date in</div>
-                                            <div class="text-lg font-bold text-white">${drop.city}</div>
-                                        </div>
-                                    </div>
-
-                                    <h2 class="text-4xl serif italic gold-text mb-4 leading-tight">${drop.title}</h2>
+                                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-dotted-2.png')]"></div>
+                                
+                                <div class="relative z-10 w-full p-3 border-2 border-amber-500/30 rounded-full flex items-center justify-center gap-2 animate-pulse shadow-[0_0_20px_rgba(217,119,6,0.1)]">
+                                    <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                                    <div class="text-[11px] uppercase tracking-[0.4em] font-black text-amber-400">Active Plot Area</div>
+                                </div>
+                                
+                                <div class="relative z-10 text-center flex-1 flex flex-col justify-center py-10">
+                                    <div class="text-[11px] uppercase tracking-widest text-zinc-500 mb-2 font-bold">A Solo Date in</div>
+                                    <div class="text-3xl font-black text-white mb-6 tracking-tight">${drop.city}</div>
                                     
-                                    <div class="flex flex-wrap gap-4 text-zinc-400 text-[11px] uppercase tracking-widest font-bold">
-                                        <div class="flex items-center gap-2"><span class="text-amber-500/50">Vibe:</span> ${drop.vibe}</div>
-                                        <div class="flex items-center gap-2"><span class="text-amber-500/50">Time:</span> ${timeStr}</div>
+                                    <div class="w-20 h-px bg-amber-900 mx-auto mb-8"></div>
+                                    
+                                    <h2 class="text-5xl serif italic gold-text mb-8 leading-tight tracking-tight">${drop.title}</h2>
+                                    
+                                    <div class="space-y-3 text-zinc-400 text-sm font-medium">
+                                        <div><span class="text-amber-500/70 font-bold uppercase tracking-wider text-[11px]">Vibe:</span> ${drop.vibe}</div>
+                                        <div><span class="text-amber-500/70 font-bold uppercase tracking-wider text-[11px]">Start:</span> ${timeStr}</div>
                                     </div>
                                 </div>
 
-                                <div class="relative z-10 flex items-end justify-between gap-4">
+                                <div class="relative z-10 flex items-end justify-between gap-4 border-t border-zinc-800 pt-6">
                                     <div class="flex-1">
-                                        <div class="text-[9px] uppercase tracking-widest text-zinc-600 mb-2 font-bold">Role Details</div>
-                                        <div class="text-[11px] text-zinc-300 bg-zinc-900/50 p-4 rounded-2xl border border-zinc-800 leading-relaxed italic">
-                                            Prop: ${drop.prop}<br>
-                                            Code: ${drop.secretDrink}
-                                        </div>
+                                        <div class="text-lg serif italic text-white leading-snug">Your storyline<br>is waiting.</div>
+                                        <div class="text-[9px] uppercase tracking-widest text-zinc-600 mt-2 font-black">Scan to join</div>
                                     </div>
-                                    <div class="w-20 h-20 bg-white p-2 rounded-2xl shrink-0 shadow-lg" id="qrcode"></div>
+                                    <div class="w-16 h-16 bg-white p-1.5 rounded-2xl shrink-0 shadow-lg" id="qrcode"></div>
                                 </div>
                             </div>
-
                             <button onclick="window.downloadShareCard(this)" class="w-full max-w-sm bg-amber-600 hover:bg-amber-500 text-white font-bold py-5 rounded-3xl transition shadow-xl flex items-center justify-center gap-3 uppercase tracking-widest text-xs">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Story-Card speichern
                             </button>
                         </div>
                     `;
+
+                    setTimeout(() => {
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: window.location.href, // Link zur App
+                            width: 64, height: 64,
+                            colorDark : "#000000", colorLight : "#ffffff"
+                        });
+
+                        window.downloadShareCard = async (btn) => {
+                            btn.innerText = "⏳ Rendering..."; btn.disabled = true;
+                            try {
+                                if(!window.html2canvas) {
+                                    await new Promise(r => {
+                                        const s = document.createElement('script');
+                                        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                                        s.onload = r; document.head.appendChild(s);
+                                    });
+                                }
+                                // Rendering mit hoher Skalierung für scharfe Bilder
+                                const canvas = await html2canvas(document.getElementById('share-card'), { 
+                                    scale: 3, 
+                                    backgroundColor: '#09090b',
+                                    useCORS: true // Falls wir Map-Bilder laden
+                                });
+                                const link = document.createElement('a');
+                                link.download = `ThePlot-${drop.city}-Story.png`;
+                                link.href = canvas.toDataURL("image/png");
+                                link.click();
+                                window.showToast("Story-Bild gespeichert!", "success");
+                            } catch (e) { window.showToast("Fehler beim Export.", "error"); }
+                            btn.innerText = "Story-Card speichern"; btn.disabled = false;
+                        };
+                    }, 100);
+                }
+
 
                     setTimeout(() => {
                         new QRCode(document.getElementById("qrcode"), {
