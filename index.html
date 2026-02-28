@@ -1146,43 +1146,17 @@ window.setSocialBattery = async (level) => {
     } catch (e) { window.showToast("Failed to send.", "error"); }
 };
 
-                // --- BERGHAIN: VIBE CHECK ---
-        window.openVibeCheck = () => { state.showVibeCheck = true; render(); };
-        window.closeVibeCheck = () => { state.showVibeCheck = false; render(); };
-
-        window.submitCastingRequest = async () => {
-            const answer = document.getElementById('vibe_answer').value;
-            if(!answer || answer.trim().length < 5) return window.showToast("Zu kurz. Sei ehrlich.", "error");
-            
-            state.showVibeCheck = false;
-            window.showToast("Wird an den Director übermittelt...", "info");
-            
+        window.requestCasting = async () => {
+            if (!state.currentDrop) return;
+            window.showToast("Casting-Anfrage wird übermittelt...", "info");
             try {
                 await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), {
-                    requestedBy: arrayUnion(state.user.uid),
-                    [`applications.${state.user.uid}`]: answer // Speichert die geheime Antwort
+                    requestedBy: arrayUnion(state.user.uid)
                 });
-                window.showToast("Request gesendet. Die Tür ist zu. Warte auf Einlass.", "success");
+                window.showToast("Request gesendet. Die Regie prüft deine Rolle.", "success");
                 render(true);
-            } catch (err) { window.showToast("Systemfehler.", "error"); }
+            } catch (err) { window.showToast("Systemfehler beim Casting Request.", "error"); }
         };
-
-        // --- FIGHT CLUB: STAY PRESENT SCHWUR ---
-        let holdTimer;
-        window.startHoldEnter = () => {
-            const prog = document.getElementById('hold_progress');
-            if(prog) prog.style.width = '100%';
-            holdTimer = setTimeout(() => {
-                window.enterRoomFlow();
-                window.showToast("Du bist jetzt im Moment.", "success");
-            }, 2000); // 2 Sekunden halten
-        };
-        window.cancelHoldEnter = () => {
-            clearTimeout(holdTimer);
-            const prog = document.getElementById('hold_progress');
-            if(prog) prog.style.width = '0%';
-        };
-
 
 
 window.claimTicket = async () => {
@@ -1427,11 +1401,10 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                     <button id="ai_generate_btn" type="button" onclick="window.generateAIPlot()" class="bg-amber-500 text-black px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white transition">✨ KI Auto-Fill</button>
                 </div>
             </div>
-                        <form onsubmit="window.createDrop(event)" class="space-y-4">
+            <form onsubmit="window.createDrop(event)" class="space-y-4">
                 <input id="admin_title" required placeholder="Titel" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 <textarea id="admin_vibe" required placeholder="Vibe / Storytelling" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-24 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
-                
-                <div class="grid grid-cols-2 gap-4">
+                               <div class="grid grid-cols-2 gap-4">
                     <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 </div>
@@ -1445,21 +1418,20 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                 </div>
                 
                 <div class="flex gap-4">
+                    
+
+                <div class="flex gap-4">
                     <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center text-sm font-bold">
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <input id="admin_prop" required placeholder="Die Requisite" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
                     <input id="admin_drink" required placeholder="Geheimcode" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
                 </div>
-
                 <textarea id="admin_quests" required placeholder="Quests (Jede Zeile eine neue Quest)..." class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-40 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
-                
                 <button type="submit" class="w-full bg-zinc-100 text-black font-black py-6 rounded-2xl mt-6 hover:bg-white transition uppercase tracking-widest text-xs shadow-2xl">${state.editingDropId ? 'Änderungen speichern' : 'Drop veröffentlichen'}</button>
                 ${state.editingDropId ? `<button type="button" onclick="window.cancelEditDrop()" class="w-full text-zinc-600 py-2 text-[10px] uppercase font-bold tracking-widest">Abbrechen</button>` : ''}
             </form>
-
         </div>
     `;
 }
@@ -1649,10 +1621,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         badgeHtml = `<span class="bg-amber-900/40 text-amber-500 border border-amber-500/30 px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-black shadow-[0_0_15px_rgba(217,119,6,0.15)] flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Premium Casting</span>`;
                         const btnText = spotsFull ? 'Casting Closed' : (hasRequested ? 'In Review...' : 'Request Casting');
                         const btnClass = (spotsFull || hasRequested) ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_20px_rgba(217,119,6,0.3)]';
-                                                // VORHER: 'onclick="window.requestCasting()"'
-                        // NACHHER: 'onclick="window.openVibeCheck()"'
-                        btnHtml = `<button ${hasRequested ? '' : 'onclick="window.openVibeCheck()"'} ${(spotsFull || hasRequested) ? 'disabled' : ''} class="w-full ${btnClass} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest flex justify-center gap-2 items-center">${hasRequested ? '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>' : ''} ${btnText}</button>`;
-
+                        btnHtml = `<button ${hasRequested ? '' : 'onclick="window.requestCasting()"'} ${(spotsFull || hasRequested) ? 'disabled' : ''} class="w-full ${btnClass} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest flex justify-center gap-2 items-center">${hasRequested ? '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>' : ''} ${btnText}</button>`;
                     } else {
                         badgeHtml = `<span class="bg-blue-900/20 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Casual Plot</span>`;
                         const btnText = spotsFull ? 'Sold Out' : 'Claim Ticket (Instant)';
@@ -1687,20 +1656,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                     `;
                 }
 
-                                if (state.showVibeCheck) {
-                        html += `
-                        <div class="fixed inset-0 bg-zinc-950/95 z-[99999] flex flex-col items-center justify-center p-6 backdrop-blur-md pointer-events-auto">
-                            <div class="w-full max-w-sm bg-zinc-900 border border-amber-900/50 p-8 rounded-[32px] shadow-[0_0_50px_rgba(217,119,6,0.15)] animate-fade-in">
-                                <h2 class="text-3xl serif italic gold-text mb-2 text-center">The Vibe Check.</h2>
-                                <p class="text-zinc-400 text-xs mb-8 text-center leading-relaxed">Der Director wählt den Cast sorgfältig. Beantworte diese Frage, um deine Tiefe zu beweisen:</p>
-                                <label class="text-[10px] uppercase tracking-widest text-amber-500 font-bold block mb-3">Welches Lied hörst du, wenn du nachts allein fährst?</label>
-                                <textarea id="vibe_answer" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-zinc-200 focus:border-amber-500 outline-none h-32 mb-6 text-sm" placeholder="Sei ehrlich..."></textarea>
-                                <button onclick="window.submitCastingRequest()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition uppercase tracking-widest text-xs shadow-lg">Bewerbung einreichen</button>
-                                <button onclick="window.closeVibeCheck()" class="w-full text-zinc-600 hover:text-zinc-400 text-[10px] uppercase tracking-widest mt-4 transition font-bold">Zurück in den Schatten</button>
-                            </div>
-                        </div>`;
-                    }
-
+            
 
                 else if (state.view === 'ticket') {
                     const isTorn = localStorage.getItem(`torn_${state.user?.uid}_${state.currentDrop.id}`) === 'true';
@@ -1766,11 +1722,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 </div>
                             </div>
 
-                                                       ${state.currentDrop.phase === 'lobby' ? `<button onclick="window.enterRoomFlow()" class="mt-8 mx-4 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest block w-[calc(100%-32px)] text-center shadow-lg">Lobby Chat öffnen</button>` : state.currentDrop.phase === 'live' ? `<button onmousedown="window.startHoldEnter()" onmouseup="window.cancelHoldEnter()" ontouchstart="window.startHoldEnter()" ontouchend="window.cancelHoldEnter()" onmouseleave="window.cancelHoldEnter()" class="mt-8 mx-4 bg-zinc-950 border border-amber-900/50 text-amber-500 font-bold py-5 rounded-xl transition shadow-[0_0_20px_rgba(217,119,6,0.15)] text-[10px] uppercase tracking-widest block w-[calc(100%-32px)] text-center relative overflow-hidden group select-none cursor-pointer">
-                                <div id="hold_progress" class="absolute left-0 top-0 bottom-0 bg-amber-600/30 w-0 transition-all duration-[2000ms] ease-linear"></div>
-                                <span class="relative z-10 flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Hold to swear to stay present</span>
-                            </button>` : `<button onclick="window.enterRoomFlow()" class="mt-8 mx-4 bg-white text-black font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest block w-[calc(100%-32px)] text-center shadow-lg">View Credits (Connect)</button>`}
-
+                            ${state.currentDrop.phase === 'lobby' ? `<button onclick="window.enterRoomFlow()" class="mt-8 mx-4 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest block w-[calc(100%-32px)] text-center shadow-lg">Lobby Chat öffnen</button>` : state.currentDrop.phase === 'live' ? `<button onclick="window.enterRoomFlow()" class="mt-8 mx-4 bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition shadow-[0_0_20px_rgba(217,119,6,0.4)] text-sm uppercase tracking-widest animate-pulse block w-[calc(100%-32px)] text-center">ENTER LIVE SCENE</button>` : `<button onclick="window.enterRoomFlow()" class="mt-8 mx-4 bg-white text-black font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest block w-[calc(100%-32px)] text-center shadow-lg">View Credits (Connect)</button>`}
                             <button onclick="window.shareScene()" class="w-full text-center mt-6 text-xs text-zinc-500 hover:text-amber-500 uppercase tracking-widest transition flex justify-center items-center gap-2 pb-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg> Share your Scene</button>
                         `;
                     }
