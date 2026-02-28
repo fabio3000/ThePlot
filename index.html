@@ -929,6 +929,8 @@ window.setSocialBattery = async (level) => {
             document.getElementById('admin_time').value = d.toISOString().slice(0,16);
             
             document.getElementById('admin_form_title').innerText = "Drop bearbeiten";
+            if (document.getElementById('admin_exclusive')) document.getElementById('admin_exclusive').checked = drop.isExclusive || false;
+
             window.scrollTo(0,0);
         };
 
@@ -1098,6 +1100,9 @@ window.setSocialBattery = async (level) => {
                 prop: document.getElementById('admin_prop').value,
                 secretDrink: document.getElementById('admin_drink').value,
                 quests: document.getElementById('admin_quests').value.split('\n').filter(q => q.trim() !== '')
+                isExclusive: document.getElementById('admin_exclusive') ? document.getElementById('admin_exclusive').checked : false 
+            };
+
             };
 
             if(state.editingDropId) {
@@ -1141,6 +1146,17 @@ window.setSocialBattery = async (level) => {
     } catch (e) { window.showToast("Failed to send.", "error"); }
 };
 
+        window.requestCasting = async () => {
+            if (!state.currentDrop) return;
+            window.showToast("Casting-Anfrage wird übermittelt...", "info");
+            try {
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), {
+                    requestedBy: arrayUnion(state.user.uid)
+                });
+                window.showToast("Request gesendet. Die Regie prüft deine Rolle.", "success");
+                render(true);
+            } catch (err) { window.showToast("Systemfehler beim Casting Request.", "error"); }
+        };
 
 
 window.claimTicket = async () => {
@@ -1388,10 +1404,24 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
             <form onsubmit="window.createDrop(event)" class="space-y-4">
                 <input id="admin_title" required placeholder="Titel" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 <textarea id="admin_vibe" required placeholder="Vibe / Storytelling" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-24 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
-                <div class="grid grid-cols-2 gap-4">
+                               <div class="grid grid-cols-2 gap-4">
                     <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 </div>
+                
+                <div class="p-4 bg-amber-900/10 border border-amber-500/30 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Premium Casting</div>
+                        <div class="text-xs text-zinc-400 mt-1">Erfordert Bewerbung durch die Nutzer.</div>
+                    </div>
+                    <input type="checkbox" id="admin_exclusive" class="w-6 h-6 accent-amber-500 cursor-pointer">
+                </div>
+                
+                <div class="flex gap-4">
+                    <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
+                    <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center text-sm font-bold">
+                </div>
+
                 <div class="flex gap-4">
                     <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center text-sm font-bold">
@@ -1580,30 +1610,54 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         <button onclick="window.toggleAuthMode()" class="w-full text-center mt-6 text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">${state.authMode === 'login' ? 'Neu hier? Ticket lösen' : 'Bereits Teil der Cast? Login'}</button>
                     `;
                 }
-                else if (state.view === 'home') {
+                               else if (state.view === 'home') {
+                    const drop = state.currentDrop;
+                    const isExclusive = drop.isExclusive;
+                    const hasRequested = drop.requestedBy?.includes(state.user?.uid);
+                    const spotsFull = drop.spotsLeft === 0;
+
+                    let btnHtml = '';
+                    let badgeHtml = '';
+
+                    if (isExclusive) {
+                        badgeHtml = `<span class="bg-amber-900/40 text-amber-500 border border-amber-500/30 px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-black shadow-[0_0_15px_rgba(217,119,6,0.15)] flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Premium Casting</span>`;
+                        const btnText = spotsFull ? 'Casting Closed' : (hasRequested ? 'In Review...' : 'Request Casting');
+                        const btnClass = (spotsFull || hasRequested) ? 'bg-zinc-900 text-zinc-600 border border-zinc-800' : 'bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_20px_rgba(217,119,6,0.3)]';
+                        btnHtml = `<button ${hasRequested ? '' : 'onclick="window.requestCasting()"'} ${(spotsFull || hasRequested) ? 'disabled' : ''} class="w-full ${btnClass} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest flex justify-center gap-2 items-center">${hasRequested ? '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>' : ''} ${btnText}</button>`;
+                    } else {
+                        badgeHtml = `<span class="bg-blue-900/20 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-full text-[9px] uppercase tracking-widest font-black flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Casual Plot</span>`;
+                        const btnText = spotsFull ? 'Sold Out' : 'Claim Ticket (Instant)';
+                        const btnClass = spotsFull ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-100 text-zinc-900 hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]';
+                        btnHtml = `<button onclick="window.claimTicket()" ${spotsFull ? 'disabled' : ''} class="w-full ${btnClass} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">${btnText}</button>`;
+                    }
+
                     html += `
-                        <div class="mb-4 flex justify-between items-center"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span><span class="text-xs uppercase tracking-widest text-red-500 font-bold">Nächster Drop in ${state.currentDrop.city}</span></div></div>
-                        <div class="bg-zinc-900/60 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm relative overflow-hidden group shadow-2xl">
+                        <div class="mb-4 flex flex-wrap justify-between items-center gap-y-3">
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span><span class="text-xs uppercase tracking-widest text-red-500 font-bold">Nächster Drop in ${drop.city}</span></div>
+                            ${badgeHtml}
+                        </div>
+                        <div class="bg-zinc-900/60 border ${isExclusive ? 'border-amber-900/40 shadow-[0_0_40px_rgba(217,119,6,0.1)]' : 'border-zinc-800 shadow-2xl'} rounded-3xl p-8 backdrop-blur-sm relative overflow-hidden group">
                             <div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1511556820780-d912e42b4980?auto=format&fit=crop&q=80')] bg-cover bg-center transition duration-1000 group-hover:scale-105 group-hover:opacity-30"></div>
                             <div class="relative z-10">
-                                <h2 class="text-4xl serif italic mb-2">${state.currentDrop.title}</h2>
-                                <p class="text-zinc-400 text-sm mb-8 leading-relaxed">"${state.currentDrop.vibe}"</p>
+                                <h2 class="text-4xl serif italic mb-2 ${isExclusive ? 'gold-text' : 'text-zinc-100'}">${drop.title}</h2>
+                                <p class="text-zinc-400 text-sm mb-8 leading-relaxed">"${drop.vibe}"</p>
                                 <div class="space-y-4 mb-10">
                                     <div class="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-4">
                                         <span class="text-zinc-500 uppercase tracking-widest text-xs">Location</span>
                                         <span class="text-zinc-300 flex items-center gap-2 text-right text-xs">
-                                            <span>${state.currentDrop.blurLocation}</span>
-                                            <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                            <span>${drop.blurLocation}</span>
+                                            ${isExclusive ? '<svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>' : ''}
                                         </span>
                                     </div>
-                                    <div class="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-4"><span class="text-zinc-500 uppercase tracking-widest text-xs">Time</span><span class="text-zinc-300">${formatEventDate(state.currentDrop.eventTime)}</span></div>
-                                    <div class="flex justify-between items-center text-sm"><span class="text-zinc-500 uppercase tracking-widest text-xs">Capacity</span><span class="text-amber-500 font-bold">${state.currentDrop.spotsLeft} Spots left</span></div>
+                                    <div class="flex justify-between items-center text-sm border-b border-zinc-800/50 pb-4"><span class="text-zinc-500 uppercase tracking-widest text-xs">Time</span><span class="text-zinc-300">${formatEventDate(drop.eventTime)}</span></div>
+                                    <div class="flex justify-between items-center text-sm"><span class="text-zinc-500 uppercase tracking-widest text-xs">Capacity</span><span class="${isExclusive ? 'text-amber-500' : 'text-blue-400'} font-bold">${drop.spotsLeft} Spots left</span></div>
                                 </div>
-                                <button onclick="window.claimTicket()" ${state.currentDrop.spotsLeft === 0 ? 'disabled' : ''} class="w-full ${state.currentDrop.spotsLeft === 0 ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-100 text-zinc-900 hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)]'} font-bold py-4 rounded-xl transition text-sm uppercase tracking-widest">${state.currentDrop.spotsLeft === 0 ? 'Sold Out' : 'Claim Ticket'}</button>
+                                ${btnHtml}
                             </div>
                         </div>
                     `;
                 }
+
             
 
                 else if (state.view === 'ticket') {
