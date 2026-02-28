@@ -1450,9 +1450,12 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                     });
                                 }
                             }).render('#paypal-button-container');
-                        } else if (!window.paypal) {
+                                            } else if (!window.paypal) {
                             document.getElementById('paypal-button-container').innerHTML = '<div class="text-red-500 text-xs italic">System blockiert: Bitte lade die Seite neu.</div>';
                         }
+                    }, 100);
+                }
+
                                     else if (state.view === 'share') {
                     const drop = state.currentDrop;
                     if(!drop) { window.setView('home'); return; }
