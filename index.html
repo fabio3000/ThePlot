@@ -1401,10 +1401,11 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                     <button id="ai_generate_btn" type="button" onclick="window.generateAIPlot()" class="bg-amber-500 text-black px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white transition">✨ KI Auto-Fill</button>
                 </div>
             </div>
-            <form onsubmit="window.createDrop(event)" class="space-y-4">
+                        <form onsubmit="window.createDrop(event)" class="space-y-4">
                 <input id="admin_title" required placeholder="Titel" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 <textarea id="admin_vibe" required placeholder="Vibe / Storytelling" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-24 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
-                               <div class="grid grid-cols-2 gap-4">
+                
+                <div class="grid grid-cols-2 gap-4">
                     <input id="admin_blurloc" required placeholder="Grobe Area" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 </div>
@@ -1418,20 +1419,21 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                 </div>
                 
                 <div class="flex gap-4">
-                    
-
-                <div class="flex gap-4">
                     <input id="admin_time" type="datetime-local" required value="${isoDate}" class="flex-1 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                     <input id="admin_spots" type="number" value="4" class="w-20 p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-center text-sm font-bold">
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <input id="admin_prop" required placeholder="Die Requisite" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
                     <input id="admin_drink" required placeholder="Geheimcode" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm italic">
                 </div>
+
                 <textarea id="admin_quests" required placeholder="Quests (Jede Zeile eine neue Quest)..." class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none h-40 focus:border-amber-500 transition text-sm leading-relaxed"></textarea>
+                
                 <button type="submit" class="w-full bg-zinc-100 text-black font-black py-6 rounded-2xl mt-6 hover:bg-white transition uppercase tracking-widest text-xs shadow-2xl">${state.editingDropId ? 'Änderungen speichern' : 'Drop veröffentlichen'}</button>
                 ${state.editingDropId ? `<button type="button" onclick="window.cancelEditDrop()" class="w-full text-zinc-600 py-2 text-[10px] uppercase font-bold tracking-widest">Abbrechen</button>` : ''}
             </form>
+
         </div>
     `;
 }
