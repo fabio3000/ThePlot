@@ -153,6 +153,14 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
     position: absolute; top: -10px; left: 0; transform: rotate(180deg); 
 }
 
+@keyframes pulse-gold {
+    0% { box-shadow: 0 0 5px rgba(217, 119, 6, 0.2); border-color: rgba(217, 119, 6, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(217, 119, 6, 0.5); border-color: rgba(217, 119, 6, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(217, 119, 6, 0.2); border-color: rgba(217, 119, 6, 0.3); }
+}
+.animate-pulse-gold { animation: pulse-gold 2s infinite ease-in-out; }
+
+
     </style>
  
 
@@ -1183,13 +1191,20 @@ window.claimTicket = async () => {
         
       
 
-        function formatTimeLeft(ms) {
+            function formatTimeLeft(ms) {
             if(ms <= 0) return "Jetzt";
-            const h = Math.floor(ms / (1000 * 60 * 60));
+            const d = Math.floor(ms / (1000 * 60 * 60 * 24));
+            const h = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
             const s = Math.floor((ms % (1000 * 60)) / 1000);
-            return `${h}h ${m}m ${s}s`;
+            
+            if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
         }
+
+
         function formatMMSS(ms) {
             if(ms <= 0) return "00:00";
             const m = Math.floor(ms / 60000).toString().padStart(2, '0');
@@ -1414,7 +1429,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"></path></svg>
                             </div>
                             <h2 class="text-3xl serif italic mb-3 gold-text">Casting Call.</h2>
-                            <p class="text-zinc-400 text-sm mb-8 leading-relaxed max-w-xs mx-auto">Dein monatliches Kontingent von 3 Szenen ist erschöpft. Hol dir ein Bundle, um sofort weiterzuspielen.</p>
+                            <p class="text-zinc-400 text-sm mb-8 leading-relaxed max-w-xs mx-auto">Dein monatliches Kontingent von 3 Szenen ist erschöpft? Hol dir ein Bundle, um sofort weiterzuspielen!</p>
                             
                             <div class="bg-zinc-900/50 border border-amber-500/30 p-6 rounded-[32px] mb-6 w-full max-w-sm backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.5)]">
                                 <div class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold mb-2">Director's Bundle</div>
@@ -1872,13 +1887,15 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                         <div class="text-[8px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Monats-Tickets</div>
                                         <div class="text-lg font-bold text-zinc-200">${3 - (state.profile?.monthlyTicketsUsed || 0)}/3</div>
                                     </div>
-                                                                        <div onclick="window.setView('paywall')" class="bg-zinc-950 p-4 rounded-2xl border border-amber-900/30 hover:border-amber-500/50 transition cursor-pointer group">
-                                        <div class="text-[8px] uppercase tracking-widest text-zinc-500 font-bold mb-1 group-hover:text-amber-500 transition">Extra-Tickets</div>
-                                        <div class="flex items-center justify-between">
-                                            <div class="text-lg font-bold text-amber-500">${state.profile?.extraTickets || 0}</div>
-                                            <svg class="w-4 h-4 text-amber-500/50 group-hover:text-amber-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                        </div>
-                                    </div>
+<div onclick="window.setView('paywall')" 
+     class="bg-zinc-950 p-4 rounded-2xl border transition cursor-pointer group ${ (state.profile?.extraTickets || 0) === 0 ? 'animate-pulse-gold border-amber-600' : 'border-zinc-800 hover:border-amber-500/50' }">
+    <div class="text-[8px] uppercase tracking-widest text-zinc-500 font-bold mb-1 group-hover:text-amber-500 transition">Extra-Tickets</div>
+    <div class="flex items-center justify-between">
+        <div class="text-lg font-bold text-amber-500">${state.profile?.extraTickets || 0}</div>
+        <svg class="w-4 h-4 text-amber-500/50 group-hover:text-amber-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    </div>
+</div>
+
 
                                 </div>
 
