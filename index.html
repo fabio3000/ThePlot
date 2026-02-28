@@ -307,22 +307,21 @@ window.sendBroadcast = async () => {
     } catch (e) { console.error(e); }
 };
 
-window.generateShareCard = () => {
+window.generateShareCard = async () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 1080;
-    canvas.height = 1920;
+    canvas.width = 1080; canvas.height = 1920;
 
-    // Aktuelle Zeit-Daten für das Branding
     const now = new Date();
-    const currentYear = now.getFullYear(); // Zieht dynamisch 2026
-    const formattedDate = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const currentYear = now.getFullYear();
+    const formattedDate = state.currentDrop ? new Date(state.currentDrop.eventTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : now.toLocaleDateString('de-DE');
+    
+    const ticketNum = state.user ? String((state.user.uid.charCodeAt(0) % 12) + 1).padStart(3, '0') : '001';
+    const sceneNum = state.currentDrop?.sceneNumber || '001';
 
-    // 1. Tiefschwarzer Hintergrund (OLED Ready)
-    ctx.fillStyle = '#09090b';
-    ctx.fillRect(0, 0, 1080, 1920);
+    // 1. Hintergrund & Texturen
+    ctx.fillStyle = '#09090b'; ctx.fillRect(0, 0, 1080, 1920);
 
-    // 2. High-Quality Film Grain (TikTok Grain Texture)
     ctx.globalAlpha = 0.15;
     for (let i = 0; i < 40000; i++) {
         ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
@@ -330,48 +329,74 @@ window.generateShareCard = () => {
     }
     ctx.globalAlpha = 1.0;
 
-    // 3. Subtiles Glühen hinter dem Namen
     const aura = ctx.createRadialGradient(540, 960, 0, 540, 960, 600);
     aura.addColorStop(0, 'rgba(251, 191, 36, 0.05)');
     aura.addColorStop(1, 'transparent');
-    ctx.fillStyle = aura;
-    ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = aura; ctx.fillRect(0, 0, 1080, 1920);
 
-    // 4. Branding "The Plot."
+    // 2. Texte rendern
     ctx.fillStyle = '#f4f4f5';
     ctx.font = 'italic 700 80px "Playfair Display", serif';
     ctx.textAlign = 'center';
     ctx.fillText('The Plot.', 540, 300);
 
-    // 5. Der Alias als Main Title (Serif Elegance)
     ctx.fillStyle = '#ffffff';
     ctx.font = 'italic 700 110px "Playfair Display", serif';
     ctx.fillText(state.profile?.alias || 'The Stranger', 540, 960);
 
-    // 6. Cineastische Credit-Line
-    ctx.fillStyle = '#71717a';
-    ctx.font = '400 35px "Inter", sans-serif';
+    ctx.fillStyle = '#d97706'; 
+    ctx.font = '700 35px "Inter", sans-serif';
     ctx.letterSpacing = "15px";
-    ctx.fillText('ROLE ASSIGNED', 540, 1050);
+    ctx.fillText(`SCENE ${sceneNum} • TICKET ${ticketNum}`, 540, 1050);
 
-    // 7. Footer - Dynamische Daten
     ctx.fillStyle = '#3f3f46';
     ctx.letterSpacing = "3px";
     ctx.font = '700 28px "Inter", sans-serif';
     ctx.textAlign = 'center';
     
-    // Untere Credits im Movie-Stil
-    ctx.fillText(`PRODUCED IN ${state.selectedCity.toUpperCase()} • ${currentYear}`, 540, 1750);
+    ctx.fillText(`PRODUCED IN ${(state.currentDrop?.city || state.selectedCity).toUpperCase()} • ${currentYear}`, 540, 1750);
     ctx.font = '400 22px "Inter", sans-serif';
     ctx.fillText(`SCENE DATE: ${formattedDate} • ENTRANCE GRANTED`, 540, 1810);
 
-    // Download-Trigger
-    const dataUrl = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.download = `ThePlot_${state.profile?.alias}_${currentYear}.png`;
-    link.href = dataUrl;
-    link.click();
-    window.showToast("Cineastische Card generiert.", "success");
+    // 3. NEU: Natives Teilen-Menü aufrufen
+    canvas.toBlob(async (blob) => {
+        if (!blob) return window.showToast("Fehler bei der Bildgenerierung.", "error");
+        
+        // Sauberen Dateinamen ohne Leerzeichen erstellen
+        const cleanAlias = (state.profile?.alias || 'Stranger').replace(/\s+/g, '');
+        const fileName = `ThePlot_Scene${sceneNum}_${cleanAlias}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        // Fallback-Funktion für alte Browser / Desktop
+        const downloadFallback = () => {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png'); 
+            link.click();
+            window.showToast("Trophäe heruntergeladen.", "success");
+        };
+
+        // Prüfen, ob das Handy natives Teilen von Bildern unterstützt
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: 'The Plot.',
+                    text: 'Entrance Granted.',
+                });
+                // Wenn erfolgreich geteilt, braucht es keinen Toast, 
+                // da das Handy-Menü dem Nutzer schon Feedback gibt.
+            } catch (err) {
+                // AbortError passiert, wenn der Nutzer das Teilen-Menü einfach wieder schließt. Das ignorieren wir.
+                if (err.name !== 'AbortError') { 
+                    downloadFallback();
+                }
+            }
+        } else {
+            // Natives Teilen nicht möglich -> Klassischer Download
+            downloadFallback();
+        }
+    }, 'image/png');
 };
 
 
