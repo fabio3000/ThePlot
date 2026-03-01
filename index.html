@@ -1389,7 +1389,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                     <div class="max-w-lg mx-auto px-4 w-full flex-1 flex flex-col justify-center z-20">
                 `;
 
-                if (state.showDirectorLogin) {
+                                if (state.showDirectorLogin) {
                     html += `
                         <div class="absolute inset-0 bg-zinc-950/95 z-[99999] flex flex-col items-center justify-center p-6 pointer-events-auto">
                             <h2 class="text-3xl serif italic text-red-500 mb-6">Director Login</h2>
@@ -1397,47 +1397,50 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 <input id="dir_pwd" type="password" placeholder="Passwort" class="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl outline-none focus:border-red-500 text-zinc-200 transition text-center tracking-widest">
                                 <button type="submit" class="w-full bg-red-900/50 text-red-400 border border-red-800/50 hover:bg-red-800 hover:text-white font-bold py-4 rounded-xl transition uppercase tracking-widest">Enter</button>
                                 <button type="button" onclick="window.closeDirectorLogin()" class="text-xs text-zinc-500 uppercase tracking-widest mt-4">Abbrechen</button>
-                                
-                                        if (state.reviewDropId) {
-            const reviewDrop = state.allDrops.find(d => d.id === state.reviewDropId);
-            const requests = reviewDrop?.requestedBy || [];
-            
-            html += `
-                <div class="fixed inset-0 bg-zinc-950/95 z-[99999] p-6 flex flex-col items-center pt-20 overflow-y-auto pointer-events-auto">
-                    <div class="w-full max-w-xl">
-                        <div class="flex justify-between items-center mb-8">
-                            <div>
-                                <h2 class="text-3xl serif italic gold-text">Casting Mappe</h2>
-                                <p class="text-zinc-500 text-xs uppercase tracking-widest mt-1">${reviewDrop.title}</p>
-                            </div>
-                            <button onclick="window.closeCastingFolder()" class="text-zinc-500 hover:text-white uppercase text-xs font-bold tracking-widest">Schließen</button>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            ${requests.length === 0 ? '<p class="text-zinc-500 italic">Keine offenen Bewerbungen.</p>' : ''}
-                            ${requests.map(uid => {
-                                const app = reviewDrop.applications?.[uid] || { alias: 'Unknown', answer: 'Keine Antwort.' };
-                                return `
-                                <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative overflow-hidden">
-                                    <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1">${app.alias}</div>
-                                    <div class="text-zinc-200 text-sm italic leading-relaxed mb-6">"${app.answer}"</div>
-                                    <div class="flex gap-2">
-                                        <button onclick="window.decideCasting('${reviewDrop.id}', '${uid}', true)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest transition">Accept</button>
-                                        <button onclick="window.decideCasting('${reviewDrop.id}', '${uid}', false)" class="flex-1 bg-zinc-950 text-red-500 hover:text-red-400 font-bold py-3 rounded-xl border border-zinc-800 text-xs uppercase tracking-widest transition">Reject</button>
-                                    </div>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-
                             </form>
                         </div>
                     `;
                 }
+
+                // Das Pop-Up für die Casting-Mappe (jetzt sauber getrennt!)
+                if (state.reviewDropId) {
+                    const reviewDrop = state.allDrops.find(d => d.id === state.reviewDropId);
+                    const requests = reviewDrop?.requestedBy || [];
+                    
+                    html += `
+                        <div class="fixed inset-0 bg-zinc-950/95 z-[99999] p-6 flex flex-col items-center pt-20 overflow-y-auto pointer-events-auto">
+                            <div class="w-full max-w-xl">
+                                <div class="flex justify-between items-center mb-8">
+                                    <div>
+                                        <h2 class="text-3xl serif italic gold-text">Casting Mappe</h2>
+                                        <p class="text-zinc-500 text-xs uppercase tracking-widest mt-1">${reviewDrop?.title || ''}</p>
+                                    </div>
+                                    <button onclick="window.closeCastingFolder()" class="text-zinc-500 hover:text-white uppercase text-xs font-bold tracking-widest">Schließen</button>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    ${requests.length === 0 ? '<p class="text-zinc-500 italic">Keine offenen Bewerbungen.</p>' : ''}
+                                    ${requests.map(uid => {
+                                        const app = reviewDrop.applications?.[uid] || { alias: 'Unknown', answer: 'Keine Antwort.' };
+                                        return \`
+                                        <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative overflow-hidden">
+                                            <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1">\${app.alias}</div>
+                                            <div class="text-zinc-200 text-sm italic leading-relaxed mb-6">"\${app.answer}"</div>
+                                            <div class="flex gap-2">
+                                                <button onclick="window.decideCasting('\${reviewDrop.id}', '\${uid}', true)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest transition">Accept</button>
+                                                <button onclick="window.decideCasting('\${reviewDrop.id}', '\${uid}', false)" class="flex-1 bg-zinc-950 text-red-500 hover:text-red-400 font-bold py-3 rounded-xl border border-zinc-800 text-xs uppercase tracking-widest transition">Reject</button>
+                                            </div>
+                                        </div>\`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+
+
+
 
                               if (state.view === 'admin') {
     let defaultDate = new Date(); defaultDate.setDate(defaultDate.getDate() + 1); defaultDate.setHours(20, 0, 0, 0);
@@ -1548,13 +1551,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                     <input id="admin_exactloc" required placeholder="Exakte Adresse" class="w-full p-4 bg-zinc-950/50 border border-zinc-800 rounded-2xl outline-none focus:border-amber-500 transition text-sm">
                 </div>
                 
-                <div class="p-4 bg-amber-900/10 border border-amber-500/30 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Premium Casting</div>
-                        <div class="text-xs text-zinc-400 mt-1">Erfordert Bewerbung durch die Nutzer.</div>
-                    </div>
-                    <input type="checkbox" id="admin_exclusive" class="w-6 h-6 accent-amber-500 cursor-pointer">
-                </div>
+              
                                 <div class="p-4 bg-amber-900/10 border border-amber-500/30 rounded-2xl flex items-center justify-between">
                     <div>
                         <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Premium Casting</div>
