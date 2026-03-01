@@ -2116,7 +2116,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 </div>
                             `;
                         }
-                    } else if (state.currentDrop.phase === 'live') {
+                    } else if (state.currentDrop?.phase === 'live') {
                         const qIndex = state.currentDrop.activeQuestIndex || 0;
                         const quest = state.currentDrop.quests[qIndex] || "Keine Quests verfügbar.";
                         
@@ -2157,7 +2157,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 </div>
                             </div>
                         `;
-                    } else if (state.currentDrop.phase === 'intermission') {
+                    } else if (state.currentDrop?.phase === 'intermission') {
                         const breakDuration = 0 * 1000;
                         const elapsed = now - (state.currentDrop.intermissionStartTime || now);
                         const breakLeft = Math.max(0, breakDuration - elapsed);
@@ -2176,7 +2176,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                 </div>
                             </div>
                         `;
-                    } else if (state.currentDrop.phase === 'finale') {
+                    } else if (state.currentDrop?.phase === 'finale') {
                         html += `
                             <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 items-center justify-center p-6 text-center pointer-events-auto pb-6">
                                 <h2 class="text-4xl serif italic mb-4 gold-text">Die Szene ist im Kasten.</h2>
@@ -2189,7 +2189,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 
                             </div>
                         `;
-                    } else if (state.currentDrop.phase === 'credits') {
+                    } else if (state.currentDrop?.phase === 'credits') {
                         
                         // Finde alle einzigartigen Teilnehmer aus den Nachrichten
                         const uniqueParticipants = [];
