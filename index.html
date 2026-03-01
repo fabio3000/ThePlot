@@ -362,9 +362,17 @@ window.generateShareCard = async (cardType = 'alias') => {
         // TICKET-MODUS (Mit echter Szene und Event-Datum!)
         const eventDate = new Date(state.currentDrop.eventTime);
         const formattedDate = eventDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                // Findet das Ticket für die aktuelle Szene im Profil und liest die Reihenfolge aus
-        const myTicket = state.profile?.tickets?.find(t => t.dropId === state.currentDrop.id);
-        const ticketNum = myTicket ? String(myTicket.order).padStart(3, '0') : '001';
+
+         // Findet das Ticket-Objekt im neuen Format { dropId, order }
+    const myTicket = state.profile?.tickets?.find(t => 
+        (typeof t === 'string' ? t === state.currentDrop.id : t.dropId === state.currentDrop.id)
+    );
+    
+    // Holt die Sequenznummer (order), falls vorhanden, sonst Fallback 001
+    const ticketNum = (myTicket && typeof myTicket === 'object' && myTicket.order) 
+        ? String(myTicket.order).padStart(3, '0') 
+        : '001';
+
 
         ctx.fillStyle = '#d97706'; // Gold
         ctx.font = '700 35px "Inter", sans-serif';
@@ -699,7 +707,7 @@ window.setSocialBattery = async (level) => {
         // ==========================================
         // UI & NAVIGATION
         // ==========================================
-        function checkRouting() {
+                function checkRouting() {
             const devMenu = document.getElementById('dev-menu');
             const skipBtn = document.getElementById('dev-skip-btn');
             
@@ -717,11 +725,15 @@ window.setSocialBattery = async (level) => {
                 if (state.profile.isAdmin) state.view = 'admin';
                 else if (!state.currentDrop) state.view = 'nodrop';
                 else {
-                    state.hasTicket = state.profile.tickets?.includes(state.currentDrop.id);
+                    // --- ÜBERALL HIER ANPASSEN ---
+                    state.hasTicket = state.profile.tickets?.some(t => 
+                        typeof t === 'string' ? t === state.currentDrop.id : t.dropId === state.currentDrop.id
+                    );
                     state.view = state.hasTicket ? 'ticket' : 'home';
                 }
             }
         }
+
 
         function scrollToBottom() { setTimeout(() => { const chatBox = document.getElementById('chat_messages'); if (chatBox) chatBox.scrollTop = chatBox.scrollHeight; }, 50); }
 
