@@ -206,40 +206,7 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
         0.9.43 Beta
     </div>
     
-    <script>
-const claims = [
-  "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
-  "Kein Swipe.<br>Nur Szene.",
-  "Du wurdest gecastet.<br>Was passiert, passiert.",
-  "Begegnung zuerst.<br>Alles andere entsteht.",
-  "Kuratiert statt zufällig.",
-  "Limitierte Rollen.<br>Echte Energie.",
-  "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
-  "Atmosphäre statt Algorithmus.",
-  "Connection first.<br>Chemistry optional.",
-  "Ein Abend.<br>Eine Rolle.<br>Offenes Ende."
-];
-
-const claimElement = document.getElementById("rotating-claim");
-
-function showRandomClaim() {
-  const random = claims[Math.floor(Math.random() * claims.length)];
-  
-  claimElement.style.opacity = 0;
-  claimElement.style.transform = "translateY(8px)";
-  
-  setTimeout(() => {
-    claimElement.innerHTML = random;
-    claimElement.style.opacity = 1;
-    claimElement.style.transform = "translateY(0)";
-  }, 300);
-}
-
-showRandomClaim();
-
-// Optional: automatisch alle 6 Sekunden wechseln
-setInterval(showRandomClaim, 6000);
-</script>
+ 
 
    <script src="https://www.paypal.com/sdk/js?client-id=AboxAT2qskA0lY5-23Kj2tu_qY3bOK57rq_LbhtE_cdVOBT37fSHGacBKjgl-zx1XcJM9AZql96OCwc8&currency=EUR"></script>
     <script type="module">
@@ -1182,16 +1149,37 @@ if (document.getElementById('admin_scene_number')) document.getElementById('admi
             const now = new Date();
             const timeString = now.toLocaleString('de-DE');
 
-            const promptStr = `Du bist Event-Designer für ein achtsames Solo-Date ('The Plot') in ${payload.city}.
-            JETZT ist es: ${timeString}. Aktuelles Wetter: ${weatherInfo}.
-            
-            EISERNE REGELN:
-            1. ÜBERSCHREIBE NICHTS KOMPLETT: Behalte bestehende Ideen bei und schmücke sie nur atmosphärisch aus.
-            2. Fülle leere Felder passend aus.
-            3. WICHTIG: Erfinde ein PERFEKTES Datum und eine Uhrzeit in der nahen Zukunft, die exakt zum Vibe passen (Morgensonne? Mitternacht?). Gib es im Format 'YYYY-MM-DDTHH:mm' zurück!
-            4. Quests sollen emotionale, verletzliche Momente triggern und für mentale Erholung sorgen.
-            
-            Aktueller Entwurf: ${JSON.stringify(payload)}`;
+            const promptStr = `Du bist Event-Designer für „The Plot“ in ${payload.city}.
+Jetzt ist es: ${timeString}. Aktuelles Wetter: ${weatherInfo}.
+
+Kontext:
+"The Plot" ist eine kuratierte reale Begegnung. 
+Kein klassisches Dating. Begegnung steht im Fokus.
+Dating darf entstehen, ist aber nicht das Ziel.
+
+REGELN:
+1. Überschreibe bestehende Inhalte NICHT komplett. Verfeinere sie atmosphärisch.
+2. Fülle leere Felder sinnvoll aus.
+3. Bestimme ein passendes Format, falls nicht definiert:
+   - Duo Encounter
+   - Chill Bar Evening
+   - Experimental Format
+   - Group Story Experience
+4. Erzeuge ein perfektes Datum & Uhrzeit in naher Zukunft,
+   exakt passend zur Stimmung.
+   Format: YYYY-MM-DDTHH:mm
+5. Baue eine klare emotionale Dramaturgie ein:
+   Arrival → Interaction → Shift → Closing.
+6. Quests sollen echte Verbindung fördern,
+   nicht cringe, nicht gezwungen.
+
+Stil:
+Cineastisch. Intelligent. Minimal.
+Premium statt esoterisch.
+Subtil statt kitschig.
+
+Aktueller Entwurf:
+${JSON.stringify(payload)};
             
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${localApiKey}`, {
@@ -2312,5 +2300,36 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
         }
 
     </script>
+    
+     <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const claims = [
+    "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
+    "Kein Swipe.<br>Nur Szene.",
+    "Du wurdest gecastet.<br>Was passiert, passiert.",
+    "Kuratiert statt zufällig.",
+    "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
+    "Atmosphäre statt Algorithmus.",
+    "Limitierte Rollen.<br>Echte Energie."
+  ];
+
+  const el = document.getElementById("rotating-claim");
+
+  function changeClaim() {
+    el.style.opacity = 0;
+
+    setTimeout(() => {
+      const random = claims[Math.floor(Math.random() * claims.length)];
+      el.innerHTML = random;
+      el.style.opacity = 1;
+    }, 300);
+  }
+
+  changeClaim();
+  setInterval(changeClaim, 6000);
+
+});
+</script>
 </body>
 </html>
