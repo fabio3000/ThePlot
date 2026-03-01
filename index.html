@@ -1847,9 +1847,10 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                       <div class="text-center mb-10">
   <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
   
-<p id="rotating-claim">
-  Loading the scene…
+<p id="rotating-claim" class="text-zinc-400 text-sm" style="transition: opacity 0.3s ease; min-height: 40px;">
+  Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.
 </p>
+
 </div>
                         <form onsubmit="window.handleAuth(event)" class="space-y-4">
                             <input id="auth_email" type="email" placeholder="Email" required value="${state.tempEmail || ''}" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
@@ -2301,36 +2302,32 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 
     </script>
     
-   <script>
-window.addEventListener("load", function () {
+<script>
+    const claims = [
+        "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
+        "Kein Swipe.<br>Nur Szene.",
+        "Du wurdest gecastet.<br>Was passiert, passiert.",
+        "Kuratiert statt zufällig.",
+        "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
+        "Atmosphäre statt Algorithmus."
+    ];
 
-  const claims = [
-    "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
-    "Kein Swipe.<br>Nur Szene.",
-    "Du wurdest gecastet.<br>Was passiert, passiert.",
-    "Kuratiert statt zufällig.",
-    "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
-    "Atmosphäre statt Algorithmus."
-  ];
+    // Läuft als Endlosschleife im Hintergrund
+    setInterval(() => {
+        const el = document.getElementById("rotating-claim");
+        
+        // Wenn das Element nicht existiert (z.B. weil der User in einer Szene ist), passiert nichts
+        if (!el) return; 
 
-  const el = document.getElementById("rotating-claim");
+        el.style.opacity = 0;
 
-  if (!el) return; // Falls ID falsch ist → Script bricht sauber ab
-
-  function changeClaim() {
-    const random = claims[Math.floor(Math.random() * claims.length)];
-    el.style.opacity = 0;
-
-    setTimeout(() => {
-      el.innerHTML = random;
-      el.style.opacity = 1;
-    }, 300);
-  }
-
-  changeClaim();
-  setInterval(changeClaim, 6000);
-
-});
+        setTimeout(() => {
+            const random = claims[Math.floor(Math.random() * claims.length)];
+            el.innerHTML = random;
+            el.style.opacity = 1;
+        }, 300); // Wartet, bis der Text ausgeblendet ist, tauscht ihn und blendet wieder ein
+    }, 4000); // Alle 4 Sekunden wechseln
 </script>
+
 </body>
 </html>
