@@ -213,7 +213,7 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
     
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, getDocs, getDoc, updateDoc, deleteDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, getDocs, updateDoc, deleteDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         let apiKey = "";
         try {
@@ -261,14 +261,12 @@ const NOUNS = [
 
 
         
-               let state = { 
+        let state = { 
             user: null, view: 'loading', profile: null, currentDrop: null, allDrops: [],
             hasTicket: false, messages: [], authMode: 'login', logoClicks: 0,
             showSettings: false, showDirectorLogin: false, showBreathe: false, selectedCity: "Köln", aiLoading: false,
-            editingDropId: null, openChatId: null, devTimeOffset: 0, socialBattery: null, tempEmail: '',
-            privateChats: [], currentDropParticipants: null, localPhaseOverride: null, openChatIsPrivate: false, openChatTitle: null
+            editingDropId: null, openChatId: null, devTimeOffset: 0, socialBattery: null, tempEmail: ''
         };
-
 
         const appDiv = document.getElementById('app');
         let countdownInterval;
@@ -572,13 +570,6 @@ async function generateUniqueAlias() {
                         });
                         unsubs.push(unsubDrops);
 
-                        // --- NEU: Listener für Private Chats ---
-                        const unsubPrivateChats = onSnapshot(query(collection(db, 'plot_private_chats'), where('users', 'array-contains', user.uid)), (snap) => {
-                            state.privateChats = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                            if(state.view === 'chats') render();
-                        });
-                        unsubs.push(unsubPrivateChats);
-
 
                         const unsubPricing = onSnapshot(doc(db, 'system', 'pricing'), (docSnap) => {
                             if (docSnap.exists()) {
@@ -660,16 +651,15 @@ async function generateUniqueAlias() {
             }
         };
 
-                window.advanceToCredits = async () => {
+        window.advanceToCredits = async () => {
             if(state.profile.isAdmin) {
                 await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
             } else {
-                // NEU: Nur lokal die Phase überschreiben, damit andere im Finale bleiben!
-                state.localPhaseOverride = 'credits';
-                render();
+                // Wenn kein Admin klickt, ändern wir die Phase nicht global, sondern springen lokal (sollte eigentlich Admin-gesteuert sein, 
+                // aber für den reibungslosen Ablauf setzen wir die Phase für alle auf Credits, sobald der Erste klickt).
+                await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { phase: 'credits' });
             }
         };
-
         
 //DEAKTIVIERT
              window.enterRoomFlow = () => {
@@ -716,49 +706,30 @@ window.setSocialBattery = async (level) => {
 
 
 
-                window.submitCredits = async () => {
-            const selectedBoxes = document.querySelectorAll('input[name="match_selections"]:checked');
-            const selectedIds = Array.from(selectedBoxes).map(el => el.value);
-            const journalText = document.getElementById('afterglow_journal')?.value || "";
-            
-            try {
-                // 1. Speichere deine Auswahl in der Datenbank
-                await setDoc(doc(db, 'plot_connections', `${state.user.uid}_${state.currentDrop.id}`), {
-                    userId: state.user.uid, dropId: state.currentDrop.id,
-                    selections: selectedIds, timestamp: Date.now()
-                });
-
-                // 2. Prüfe auf Matches (Mutual Connection)
-                for (const targetId of selectedIds) {
-                    const targetSnap = await getDoc(doc(db, 'plot_connections', `${targetId}_${state.currentDrop.id}`));
-                    if (targetSnap.exists() && targetSnap.data().selections.includes(state.user.uid)) {
-                        // MATCH! Erstelle den Private Chat Room
-                        const matchId = `match_${state.currentDrop.id}_${[state.user.uid, targetId].sort().join('_')}`;
-                        const targetAlias = state.currentDropParticipants?.find(p => p.id === targetId)?.alias || "Stranger";
-                        
-                        await setDoc(doc(db, 'plot_private_chats', matchId), {
-                            dropId: state.currentDrop.id,
-                            users: [state.user.uid, targetId],
-                            aliases: { [state.user.uid]: state.profile.alias, [targetId]: targetAlias },
-                            timestamp: Date.now()
-                        }, { merge: true });
-                    }
-                }
-                
-                // 3. Journal und Completed Drop sicher speichern
-                const newJournals = state.profile.journals || {};
-                if (journalText.trim() !== "") newJournals[state.currentDrop.id] = journalText;
-                
-                await updateDoc(doc(db, 'plot_users', state.user.uid), {
-                    completedDrops: arrayUnion(state.currentDrop.id),
-                    journals: newJournals
-                });
-                
-                window.showToast("Abend beendet. Journal gespeichert.", "success");
-                window.setView('chats');
-            } catch(e) { window.showToast("Fehler beim Speichern.", "error"); }
-        };
-
+        window.submitCredits = async () => {
+    const selectedBoxes = document.querySelectorAll('input[name="match_selections"]:checked');
+    const selectedIds = Array.from(selectedBoxes).map(el => el.value);
+    const journalText = document.getElementById('afterglow_journal')?.value || "";
+    
+    try {
+        await addDoc(collection(db, 'plot_connections'), { 
+            userId: state.user.uid, dropId: state.currentDrop.id, 
+            selections: selectedIds, timestamp: Date.now() 
+        });
+        
+        // Speichere das Journal sicher & privat im User-Profil
+        const newJournals = state.profile.journals || {};
+        if (journalText.trim() !== "") newJournals[state.currentDrop.id] = journalText;
+        
+        await updateDoc(doc(db, 'plot_users', state.user.uid), {
+            completedDrops: arrayUnion(state.currentDrop.id),
+            journals: newJournals
+        });
+        
+        window.showToast("Abend beendet. Journal gespeichert.", "success");
+        window.setView('chats');
+    } catch(e) { window.showToast("Fehler beim Speichern.", "error"); }
+};
 
 
 
@@ -817,14 +788,13 @@ window.setSocialBattery = async (level) => {
 
         function scrollToBottom() { setTimeout(() => { const chatBox = document.getElementById('chat_messages'); if (chatBox) chatBox.scrollTop = chatBox.scrollHeight; }, 50); }
 
-              window.setView = (view) => { 
-            state.view = view; state.showSettings = false; state.showBreathe = false; 
-            if(view !== 'chats') state.openChatId = null;
-            if(view !== 'room' && view !== 'battery_check') state.socialBattery = null; 
-            if(view !== 'room') { state.localPhaseOverride = null; state.currentDropParticipants = null; }
-            checkRouting(); 
-            render(true); 
-        };
+      window.setView = (view) => { 
+    state.view = view; state.showSettings = false; state.showBreathe = false; 
+    if(view !== 'chats') state.openChatId = null;
+    if(view !== 'room' && view !== 'battery_check') state.socialBattery = null; 
+    checkRouting(); 
+    render(true); // <-- Das 'true' erzwingt hier das Update!
+};
 
     
     
@@ -1334,15 +1304,11 @@ try {
 
 
 
-                window.openPastChat = (chatId, isPrivate = false, title = null) => {
-            state.openChatId = chatId;
-            state.openChatIsPrivate = isPrivate;
-            state.openChatTitle = title;
+        window.openPastChat = (dropId) => {
+            state.openChatId = dropId;
             state.messages = []; 
             if (window.unsubChat) window.unsubChat();
-            
-            const collName = isPrivate ? `plot_private_messages_${chatId}` : `plot_messages_${chatId}`;
-            window.unsubChat = onSnapshot(collection(db, collName), (msgSnap) => {
+            window.unsubChat = onSnapshot(collection(db, `plot_messages_${dropId}`), (msgSnap) => {
                 state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
                 render(); scrollToBottom();
             });
@@ -1350,18 +1316,16 @@ try {
         };
 
         window.sendMessage = async (dropIdOverride = null) => {
-            const idToUse = dropIdOverride || state.openChatId || state.currentDrop?.id;
-            const input = document.getElementById('chat_input'); const text = input.value.trim();
-            if (!text || !idToUse) return;
-            try {
-                const collName = state.openChatIsPrivate ? `plot_private_messages_${idToUse}` : `plot_messages_${idToUse}`;
-                await addDoc(collection(db, collName), { senderId: state.user.uid, senderAlias: state.profile?.alias || 'Stranger', text: text, timestamp: Date.now(), isSystem: false });
-                input.value = ''; 
-                input.blur(); 
-                scrollToBottom();
-            } catch (e) { window.showToast("Failed to send.", "error"); }
-        };
-
+    const idToUse = dropIdOverride || state.currentDrop?.id;
+    const input = document.getElementById('chat_input'); const text = input.value.trim();
+    if (!text || !idToUse) return;
+    try {
+        await addDoc(collection(db, `plot_messages_${idToUse}`), { senderId: state.user.uid, senderAlias: state.profile?.alias || 'Stranger', text: text, timestamp: Date.now(), isSystem: false });
+        input.value = ''; 
+        input.blur(); // <-- Tastatur schließen, damit die neuen Nachrichten laden
+        scrollToBottom();
+    } catch (e) { window.showToast("Failed to send.", "error"); }
+};
 
                 // --- BERGHAIN: VIBE CHECK ---
         window.openVibeCheck = () => { state.showVibeCheck = true; render(); };
@@ -1523,33 +1487,18 @@ function render(force = false) {
         if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
     }
 
-    // FEHLER 1 BEHOBEN: Hier fehlte "state.allDrops.length > 0"
-    if (state.user && state.allDrops.length > 0 && !state.currentDrop && ['room', 'ticket', 'battery_check'].includes(state.view)) {
-        state.view = 'home';
-        checkRouting();
-    }
+        if (state.user && !state.currentDrop && ['room', 'ticket', 'battery_check'].includes(state.view)) {
+            state.view = 'home';
+            checkRouting();
+        }
 
     try {
-        const appDiv = document.getElementById('app'); 
-        
-        // FEHLER 2 BEHOBEN: Dieser Block hat gefehlt! Er beendet den Ladescreen.
-        if (state.view === 'loading' && state.profile) {
-            checkRouting(); 
-        }
-
-        // --- Archiv-Logik ---
-        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-        const activeDrops = state.allDrops.filter(d => d.eventTime > sevenDaysAgo);
-        const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
+        // --- NEU: Archiv-Logik ---
+const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+const activeDrops = state.allDrops.filter(d => d.eventTime > sevenDaysAgo);
+const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
 
         if (state.view === 'loading') {
-            appDiv.innerHTML = `
-                <div class="text-center mt-40 flex flex-col items-center">
-                    <div class="w-16 h-16 border-t-2 border-l-2 border-amber-500 rounded-full animate-spin mb-6"></div>
-                    <div class="text-2xl serif italic text-zinc-400">Loading your scene...</div>
-                </div>`;
-            return;
-        }
 
                     appDiv.innerHTML = `<div class="text-center mt-40 flex flex-col items-center"><div class="w-16 h-16 border-t-2 border-l-2 border-amber-500 rounded-full animate-spin mb-6"></div><div class="text-2xl serif italic text-zinc-400">Loading your scene...</div></div>`;
                     return;
@@ -1850,7 +1799,7 @@ function render(force = false) {
                                     <button onclick="window.closeChat()" class="flex items-center gap-2 text-zinc-400 hover:text-white uppercase tracking-widest text-[10px] font-bold transition mr-4 bg-zinc-800/50 px-3 py-2 rounded-full border border-zinc-700">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Übersicht
                                     </button>
-                                  <h3 class="font-bold text-zinc-100 serif italic truncate text-lg">${state.openChatIsPrivate ? state.openChatTitle : (dropInfo?.title || 'Storyline')}</h3>
+                                    <h3 class="font-bold text-zinc-100 serif italic truncate text-lg">${dropInfo?.title || 'Storyline'}</h3>
                                 </div>
                                 
                                 <div id="chat_messages" class="flex-1 overflow-y-auto p-4 chat-scroll flex flex-col gap-6 bg-gradient-to-b from-transparent to-zinc-900/50">
@@ -1879,11 +1828,8 @@ function render(force = false) {
                         `;
                     } else {
 
-                                                const completedDrops = state.profile?.completedDrops || [];
+                        const completedDrops = state.profile?.completedDrops || [];
                         const pastEvents = state.allDrops.filter(d => completedDrops.includes(d.id));
-                        
-                        // NEU: Private Chats laden
-                        const privateChats = state.privateChats || [];
                         
                         html += `
                             <div class="mb-8 flex justify-between items-center">
@@ -1891,29 +1837,7 @@ function render(force = false) {
                                 <button onclick="window.setView('${state.hasTicket ? 'ticket' : 'home'}')" class="text-zinc-500 hover:text-white uppercase tracking-widest text-xs font-bold transition flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Zurück</button>
                             </div>
                             <div class="space-y-4 mb-20">
-                                ${(pastEvents.length === 0 && privateChats.length === 0) ? `<div class="text-center p-10 border border-zinc-800 border-dashed rounded-3xl text-zinc-500 text-sm">Du hast noch keine aktiven Verbindungen.</div>` : ''}
-                                
-                                ${privateChats.map(chat => {
-                                    // Den anderen User finden
-                                    const otherUserId = chat.users.find(id => id !== state.user.uid);
-                                    const otherAlias = chat.aliases ? chat.aliases[otherUserId] : "Stranger";
-                                    const dropName = state.allDrops.find(d => d.id === chat.dropId)?.title || "The Plot";
-                                    
-                                    return `
-                                    <div onclick="window.openPastChat('${chat.id}', true, '${otherAlias}')" class="bg-zinc-900/50 border border-amber-500/30 hover:border-amber-400 p-6 rounded-3xl cursor-pointer transition group relative overflow-hidden flex flex-col gap-4 mb-4 shadow-[0_0_15px_rgba(217,119,6,0.05)]">
-                                        <div class="relative z-10 flex justify-between items-start">
-                                            <div>
-                                                <div class="text-[10px] text-amber-500 uppercase tracking-widest font-bold mb-1">Private Connection</div>
-                                                <h3 class="text-xl serif italic text-zinc-100 mb-1 group-hover:text-amber-400 transition leading-tight">${otherAlias}</h3>
-                                            </div>
-                                            <div class="bg-zinc-950 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-500 border border-zinc-800 shadow-inner">
-                                                ${dropName}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    `;
-                                }).join('')}
-
+                                ${pastEvents.length === 0 ? `<div class="text-center p-10 border border-zinc-800 border-dashed rounded-3xl text-zinc-500 text-sm">Du hast noch keine aktiven Verbindungen.</div>` : ''}
                                 ${pastEvents.map(d => {
                                     const age = Date.now() - (d.eventTime || Date.now());
                                     const msLeft = (7 * 24 * 60 * 60 * 1000) - age;
@@ -1937,7 +1861,6 @@ function render(force = false) {
                         `;
                     }
                 }
-
                 else if (state.view === 'nodrop') {
                     html += `
                         <div class="text-center">
@@ -2166,10 +2089,8 @@ function render(force = false) {
                 
                 */
 
-                                else if (state.view === 'room') {
-                    const currentPhase = state.localPhaseOverride || state.currentDrop?.phase;
+                else if (state.view === 'room') {
                     const now = Date.now() + state.devTimeOffset;
-
 
                     if (state.currentDrop?.phase === 'lobby') {
                         if(state.showBreathe) {
@@ -2292,53 +2213,45 @@ function render(force = false) {
 
                             </div>
                         `;
-                                        } else if (currentPhase === 'credits') {
+                    } else if (state.currentDrop?.phase === 'credits') {
                         
-                        // Lade alle Teilnehmer, die ein Ticket für diese Szene haben
-                        if (!state.currentDropParticipants) {
-                            state.currentDropParticipants = []; // Blockiert doppeltes Laden
-                            getDocs(collection(db, 'plot_users')).then(snap => {
-                                const p = [];
-                                snap.forEach(docSnap => {
-                                    if (docSnap.id !== state.user.uid) {
-                                        const data = docSnap.data();
-                                        const hasTicket = data.tickets?.some(t => typeof t === 'string' ? t === state.currentDrop.id : t.dropId === state.currentDrop.id);
-                                        if (hasTicket) p.push({id: docSnap.id, alias: data.alias || 'Stranger'});
-                                    }
-                                });
-                                state.currentDropParticipants = p;
-                                render(); // UI updaten, sobald die Liste da ist
-                            });
-                        }
-
-                        const participantsList = state.currentDropParticipants || [];
+                        // Finde alle einzigartigen Teilnehmer aus den Nachrichten
+                        const uniqueParticipants = [];
+                        const seenIds = new Set();
+                        state.messages.forEach(m => {
+                            if(m.senderId !== 'system' && m.senderId !== state.user?.uid && !seenIds.has(m.senderId)) {
+                                seenIds.add(m.senderId);
+                                uniqueParticipants.push({id: m.senderId, alias: m.senderAlias});
+                            }
+                        });
 
                         html += `
                             <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 p-6 overflow-y-auto pb-20 pointer-events-auto">
-                                <div class="text-center mt-12 mb-8"><h2 class="text-3xl serif italic mb-3">Wen möchtest du wiedersehen?</h2><p class="text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed">Wähle die Personen, mit denen du privat in Kontakt bleiben möchtest. Wenn sie dich auch wählen, entsteht ein Match.</p></div>
+                                <div class="text-center mt-12 mb-8"><h2 class="text-3xl serif italic mb-3">Wen möchtest du wiedersehen?</h2><p class="text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed">Wähle die Personen, mit denen du privat in Kontakt bleiben möchtest. Wenn sie dich auch wählen, entsteht ein Match. Der Gruppenchat der Szene bleibt ohnehin noch 7 Tage für alle offen.</p></div>
                                 <div class="max-w-sm mx-auto w-full space-y-4">
                                     
-                                    ${participantsList.length === 0 ? `<div class="p-6 border border-zinc-800 border-dashed rounded-2xl text-center text-zinc-500 text-sm">Lade Cast... (oder keine anderen Gäste anwesend)</div>` : ''}
+                                    ${uniqueParticipants.length === 0 ? `<div class="p-6 border border-zinc-800 border-dashed rounded-2xl text-center text-zinc-500 text-sm">Leider gab es keine anderen aktiven Schreiber im Chat.</div>` : ''}
                                     
-                                    ${participantsList.map(p => `
+                                    ${uniqueParticipants.map(p => `
                                         <label class="flex items-center justify-between p-5 border border-zinc-800 rounded-2xl cursor-pointer hover:bg-zinc-900 transition group">
                                             <span class="font-bold text-zinc-300 group-hover:text-amber-500 transition">${p.alias}</span>
                                             <input type="checkbox" name="match_selections" value="${p.id}" class="w-5 h-5 accent-amber-500">
                                         </label>
                                     `).join('')}
                                     
-                                    <div class="mt-8 p-6 bg-zinc-900/50 border border-amber-500/20 rounded-2xl text-left">
-                                        <h3 class="serif italic text-amber-500 text-lg mb-1">After-Glow Journal</h3>
-                                        <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">Ein Moment für dich: Wofür bist du heute dankbar?</p>
-                                        <textarea id="afterglow_journal" placeholder="Schreibe hier deine Gedanken auf..." class="w-full h-24 bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-300 outline-none focus:border-amber-500/50 transition"></textarea>
-                                    </div>
+<div class="mt-8 p-6 bg-zinc-900/50 border border-amber-500/20 rounded-2xl text-left">
+    <h3 class="serif italic text-amber-500 text-lg mb-1">After-Glow Journal</h3>
+    <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">Ein Moment für dich: Wofür bist du heute dankbar?</p>
+    <textarea id="afterglow_journal" placeholder="Schreibe hier deine Gedanken auf..." 
+              class="w-full h-24 bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-300 outline-none focus:border-amber-500/50 transition"></textarea>
+</div>
 
                                     <button onclick="window.submitCredits()" class="w-full bg-zinc-100 text-black font-bold py-4 rounded-xl mt-6 uppercase tracking-widest text-sm hover:bg-white transition">Auswahl speichern</button>
                                 </div>
                             </div>
                         `;
                     }
-
+                }
 
                 html += `</div>`;
 
