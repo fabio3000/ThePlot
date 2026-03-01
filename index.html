@@ -362,8 +362,9 @@ window.generateShareCard = async (cardType = 'alias') => {
         // TICKET-MODUS (Mit echter Szene und Event-Datum!)
         const eventDate = new Date(state.currentDrop.eventTime);
         const formattedDate = eventDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const ticketNum = state.user ? String((state.user.uid.charCodeAt(0) % 12) + 1).padStart(3, '0') : '001';
-        const sceneNum = state.currentDrop.sceneNumber || '001';
+                // Findet das Ticket für die aktuelle Szene im Profil und liest die Reihenfolge aus
+        const myTicket = state.profile?.tickets?.find(t => t.dropId === state.currentDrop.id);
+        const ticketNum = myTicket ? String(myTicket.order).padStart(3, '0') : '001';
 
         ctx.fillStyle = '#d97706'; // Gold
         ctx.font = '700 35px "Inter", sans-serif';
@@ -1280,12 +1281,12 @@ if (document.getElementById('admin_scene_number')) document.getElementById('admi
 
 window.claimTicket = async () => {
     // 1. Prüfen, ob der Nutzer Premium hat
-    const isPremium = state.profile.hasPremium || false;
+    const isPremium = state.profile?.hasPremium || false;
     
     // 2. Ticket-Logik für Nicht-Premium Nutzer
     if (!isPremium) {
-        const usedThisMonth = state.profile.monthlyTicketsUsed || 0;
-        const extra = state.profile.extraTickets || 0;
+        const usedThisMonth = state.profile?.monthlyTicketsUsed || 0;
+        const extra = state.profile?.extraTickets || 0;
 
         // Prüfung: Wenn Limit von 3 erreicht und keine Extras vorhanden sind -> Paywall
         if (usedThisMonth >= 3 && extra <= 0) {
@@ -1298,14 +1299,27 @@ window.claimTicket = async () => {
     try {
         let updateData = {};
         
-        // Ticket ID zum Profil hinzufügen
-        const newTickets = [...(state.profile?.tickets || []), state.currentDrop.id];
+        // --- NEU: SEQUENZNUMMER BERECHNEN ---
+        // Wir schauen, wie viele Plätze insgesamt da sind und wie viele noch frei sind,
+        // um die Buchungsreihenfolge (z.B. 001, 002) zu ermitteln.
+        const totalSpots = state.currentDrop.totalSpots || 4;
+        const spotsLeft = state.currentDrop.spotsLeft || 0;
+        const sequenceNum = (totalSpots - spotsLeft) + 1; 
+
+        // Wir speichern jetzt ein Objekt statt nur der ID
+        const ticketInfo = { 
+            dropId: state.currentDrop.id, 
+            order: sequenceNum 
+        };
+        
+        const newTickets = [...(state.profile?.tickets || []), ticketInfo];
         updateData.tickets = newTickets;
+        // ------------------------------------
 
         // Nur wenn KEIN Premium vorhanden ist, werden Tickets abgezogen
         if (!isPremium) {
-            const usedThisMonth = state.profile.monthlyTicketsUsed || 0;
-            const extra = state.profile.extraTickets || 0;
+            const usedThisMonth = state.profile?.monthlyTicketsUsed || 0;
+            const extra = state.profile?.extraTickets || 0;
             
             if (usedThisMonth < 3) {
                 updateData.monthlyTicketsUsed = usedThisMonth + 1;
@@ -1319,16 +1333,17 @@ window.claimTicket = async () => {
         
         // Spot im Drop abziehen
         await updateDoc(doc(db, 'plot_drops', state.currentDrop.id), { 
-            spotsLeft: Math.max(0, (state.currentDrop.spotsLeft || 1) - 1) 
+            spotsLeft: Math.max(0, spotsLeft - 1) 
         });
         
         state.view = 'ticket'; 
         render();
-        window.showToast(isPremium ? "Premium Access gewährt." : "Rolle gesichert.", "success");
+        window.showToast(isPremium ? `Premium Access (Ticket #${String(sequenceNum).padStart(3, '0')})` : `Rolle #${String(sequenceNum).padStart(3, '0')} gesichert.`, "success");
     } catch (err) { 
         window.showToast("Systemfehler beim Buchen.", "error"); 
     }
 };
+
 
 
 
@@ -2073,7 +2088,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         html += `
                             <div class="absolute inset-0 flex flex-col bg-[#09090b] z-50 items-center justify-center p-6 text-center pointer-events-auto pb-6">
                                 <h2 class="text-4xl serif italic mb-4 text-blue-300">Kurze Pause.</h2>
-                                <p class="text-zinc-400 text-sm max-w-xs leading-relaxed mb-12">Atmet durch. Geht zur Bar oder sammelt eure Gedanken. Gleich geht die nächste Runde los.</p>
+                                <p class="text-zinc-400 text-sm max-w-xs leading-relaxed mb-12">Atmet durch, sammelt eure Gedanken. Gleich geht die nächste Runde los.</p>
                                 
                                 <div class="relative w-32 h-32 flex items-center justify-center">
                                     <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
