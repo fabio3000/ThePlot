@@ -1400,6 +1400,7 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                 }
 
                 // Das Pop-Up für die Casting-Mappe (jetzt sauber getrennt!)
+                                // Das Pop-Up für die Casting-Mappe (jetzt sauber getrennt!)
                 if (state.reviewDropId) {
                     const reviewDrop = state.allDrops.find(d => d.id === state.reviewDropId);
                     const requests = reviewDrop?.requestedBy || [];
@@ -1419,21 +1420,22 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                     ${requests.length === 0 ? '<p class="text-zinc-500 italic">Keine offenen Bewerbungen.</p>' : ''}
                                     ${requests.map(uid => {
                                         const app = reviewDrop.applications?.[uid] || { alias: 'Unknown', answer: 'Keine Antwort.' };
-                                        return \`
+                                        return `
                                         <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl relative overflow-hidden">
-                                            <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1">\${app.alias}</div>
-                                            <div class="text-zinc-200 text-sm italic leading-relaxed mb-6">"\${app.answer}"</div>
+                                            <div class="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-1">${app.alias}</div>
+                                            <div class="text-zinc-200 text-sm italic leading-relaxed mb-6">"${app.answer}"</div>
                                             <div class="flex gap-2">
-                                                <button onclick="window.decideCasting('\${reviewDrop.id}', '\${uid}', true)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest transition">Accept</button>
-                                                <button onclick="window.decideCasting('\${reviewDrop.id}', '\${uid}', false)" class="flex-1 bg-zinc-950 text-red-500 hover:text-red-400 font-bold py-3 rounded-xl border border-zinc-800 text-xs uppercase tracking-widest transition">Reject</button>
+                                                <button onclick="window.decideCasting('${reviewDrop.id}', '${uid}', true)" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest transition">Accept</button>
+                                                <button onclick="window.decideCasting('${reviewDrop.id}', '${uid}', false)" class="flex-1 bg-zinc-950 text-red-500 hover:text-red-400 font-bold py-3 rounded-xl border border-zinc-800 text-xs uppercase tracking-widest transition">Reject</button>
                                             </div>
-                                        </div>\`;
+                                        </div>`;
                                     }).join('')}
                                 </div>
                             </div>
                         </div>
                     `;
                 }
+
 
 
 
