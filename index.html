@@ -273,6 +273,29 @@ const NOUNS = [
         let isTransitioning = false; 
         let isRegistering = false; 
         let unsubs = []; 
+        
+        const authClaims = [
+            "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
+            "Kein Swipe.<br>Nur Szene.",
+            "Du wurdest gecastet.<br>Was passiert, passiert.",
+            "Kuratiert statt zufällig.",
+            "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
+            "Atmosphäre statt Algorithmus."
+        ];
+        let currentClaimIdx = 0;
+
+        // Hintergrund-Rotator für den Login-Screen
+        setInterval(() => {
+            const el = document.getElementById('rotating-claim');
+            if (el) {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    currentClaimIdx = (currentClaimIdx + 1) % authClaims.length;
+                    el.innerHTML = authClaims[currentClaimIdx];
+                    el.style.opacity = '1';
+                }, 300);
+            }
+        }, 4000);
 
         window.showToast = (msg, type = 'info') => {
             const container = document.getElementById('toast-container');
@@ -1842,14 +1865,15 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         </div>
                     `;
                 }
-                else if (state.view === 'auth') {
+                                else if (state.view === 'auth') {
                     html += `
                       <div class="text-center mb-10">
-  <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
-  
-<p id="rotating-claim" class="text-zinc-400 text-sm" style="transition: opacity 0.3s ease; min-height: 40px;">
-  Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.
-</p>
+                        <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
+                        <p id="rotating-claim" class="text-zinc-400 text-sm h-16 flex items-center justify-center" style="transition: opacity 0.3s ease;">
+                          ${authClaims[currentClaimIdx]}
+                        </p>
+                      </div>
+
 
 </div>
                         <form onsubmit="window.handleAuth(event)" class="space-y-4">
@@ -2301,33 +2325,6 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
         }
 
     </script>
-    
-<script>
-    const claims = [
-        "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.",
-        "Kein Swipe.<br>Nur Szene.",
-        "Du wurdest gecastet.<br>Was passiert, passiert.",
-        "Kuratiert statt zufällig.",
-        "Vielleicht ein Date.<br>Vielleicht ein Kapitel.",
-        "Atmosphäre statt Algorithmus."
-    ];
-
-    // Läuft als Endlosschleife im Hintergrund
-    setInterval(() => {
-        const el = document.getElementById("rotating-claim");
-        
-        // Wenn das Element nicht existiert (z.B. weil der User in einer Szene ist), passiert nichts
-        if (!el) return; 
-
-        el.style.opacity = 0;
-
-        setTimeout(() => {
-            const random = claims[Math.floor(Math.random() * claims.length)];
-            el.innerHTML = random;
-            el.style.opacity = 1;
-        }, 300); // Wartet, bis der Text ausgeblendet ist, tauscht ihn und blendet wieder ein
-    }, 4000); // Alle 4 Sekunden wechseln
-</script>
 
 </body>
 </html>
