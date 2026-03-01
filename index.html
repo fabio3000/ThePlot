@@ -2142,13 +2142,14 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                                         <div class="text-lg font-bold text-zinc-200">${3 - (state.profile?.monthlyTicketsUsed || 0)}/3</div>
                                     </div>
 <div onclick="window.setView('paywall')" 
-     class="bg-zinc-950 p-4 rounded-2xl border transition cursor-pointer group ${ (state.profile?.extraTickets || 0) === 0 ? 'animate-pulse-gold border-amber-600' : 'border-zinc-800 hover:border-amber-500/50' }">
+     class="bg-zinc-950 p-4 rounded-2xl border transition cursor-pointer group ${ ((state.profile?.monthlyTicketsUsed || 0) >= 3 && (state.profile?.extraTickets || 0) === 0) ? 'animate-pulse-gold border-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.2)]' : 'border-zinc-800 hover:border-amber-500/50' }">
     <div class="text-[8px] uppercase tracking-widest text-zinc-500 font-bold mb-1 group-hover:text-amber-500 transition">Extra-Tickets</div>
     <div class="flex items-center justify-between">
         <div class="text-lg font-bold text-amber-500">${state.profile?.extraTickets || 0}</div>
         <svg class="w-4 h-4 text-amber-500/50 group-hover:text-amber-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
     </div>
 </div>
+
 
 
                                 </div>
