@@ -1843,17 +1843,17 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
                         </div>
                     `;
                 }
-                else if (state.view === 'auth') {
+                               else if (state.view === 'auth') {
                     html += `
                       <div class="text-center mb-10">
-  <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
-  
-<p id="rotating-claim" class="text-zinc-400 text-sm" style="min-height: 40px;">
-  Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot.
-</p>
+                        <h1 class="text-4xl serif italic mb-3">Claim your storyline.</h1>
+                        <div class="h-20 flex items-center justify-center">
+                            <p id="rotating-claim" class="text-zinc-400 text-sm m-0 w-full">
+                              ${window.currentClaim || "Echte Begegnungen.<br>Mehr als Dating.<br>Ein Plot."}
+                            </p>
+                        </div>
+                      </div>
 
-
-</div>
                         <form onsubmit="window.handleAuth(event)" class="space-y-4">
                             <input id="auth_email" type="email" placeholder="Email" required value="${state.tempEmail || ''}" class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition">
                             <div class="relative">
@@ -2314,46 +2314,33 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
         "Atmosphäre statt Algorithmus."
     ];
 
-    let shuffledClaims = [];
-    let lastClaim = "";
+    window.currentClaim = claims[0];
 
-    // Zieht einen zufälligen Spruch aus dem "Beutel", ohne direkte Wiederholung
+    // Garantiert absolut keine direkte Wiederholung
     function getNextClaim() {
-        if (shuffledClaims.length === 0) {
-            shuffledClaims = [...claims].sort(() => Math.random() - 0.5);
-            if (shuffledClaims[0] === lastClaim) {
-                shuffledClaims.push(shuffledClaims.shift());
-            }
-        }
-        lastClaim = shuffledClaims.pop();
-        return lastClaim;
+        const available = claims.filter(c => c !== window.currentClaim);
+        window.currentClaim = available[Math.floor(Math.random() * available.length)];
+        return window.currentClaim;
     }
-
-    // Setzt den allerersten Text direkt beim Laden (ohne Warten)
-    let currentClaimText = getNextClaim();
 
     setInterval(() => {
         const el = document.getElementById("rotating-claim");
         if (!el) return;
 
-        // 1. Cineastischer Fade-Out: Ausblenden, unscharf werden und leicht absinken
         el.style.transition = "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
         el.style.opacity = "0";
         el.style.filter = "blur(4px)";
         el.style.transform = "translateY(5px)";
 
         setTimeout(() => {
-            // Text austauschen, während er unsichtbar ist
             el.innerHTML = getNextClaim();
-            
-            // 2. Cineastischer Fade-In: Scharf werden, einblenden und in Position schweben
             el.style.opacity = "1";
             el.style.filter = "blur(0px)";
             el.style.transform = "translateY(0px)";
-        }, 800); // Wartet exakt die 0.8s der Fade-Out Animation ab
-
-    }, 4500); // Alle 4,5 Sekunden wechseln
+        }, 800);
+    }, 4500);
 </script>
+
 
 
 </body>
