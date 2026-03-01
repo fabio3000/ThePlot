@@ -1133,12 +1133,17 @@ if (document.getElementById('admin_scene_number')) document.getElementById('admi
                 if(result.suggestedDateTime) document.getElementById('admin_time').value = result.suggestedDateTime;
                 
 
-                if(result.vibeQuestion && document.getElementById('admin_vibe_question')) document.getElementById('admin_vibe_question').value = result.vibeQuestion;
+                             if(result.vibeQuestion && document.getElementById('admin_vibe_question')) document.getElementById('admin_vibe_question').value = result.vibeQuestion;
                 
                 window.showToast("Szene erfolgreich erweitert.", "success");
+                if(btn) { btn.innerText = "✨ KI Auto-Fill"; btn.disabled = false; }
+            } catch (err) {
+                window.showToast("KI Fehler: " + err.message, "error");
+                if(btn) { btn.innerText = "✨ KI Auto-Fill"; btn.disabled = false; }
+            }
+        };
 
-  
-                
+
 
                         window.createDrop = async (e) => {
             e.preventDefault();
