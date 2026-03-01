@@ -330,14 +330,27 @@ window.generateShareCard = async (cardType = 'alias') => {
     aura.addColorStop(1, 'transparent');
     ctx.fillStyle = aura; ctx.fillRect(0, 0, 1080, 1920);
 
-    // 2. Main Title (Gemeinsam)
+       // 2. Main Title (Gemeinsam)
     ctx.fillStyle = '#f4f4f5';
     ctx.font = 'italic 700 80px "Playfair Display", serif';
     ctx.textAlign = 'center';
     ctx.fillText('The Plot.', 540, 300);
 
+    // --- NEU: DYNAMISCHE SCHRIFTGRÖSSE FÜR DEN ALIAS ---
+    const userAlias = state.profile?.alias || 'The Stranger';
+    let fontSize = 110; // Startgröße
+    ctx.font = `italic 700 ${fontSize}px "Playfair Display", serif`;
+    
+    // Messen, ob der Text breiter als 900px ist (Canvas Breite ist 1080px)
+    let textWidth = ctx.measureText(userAlias).width;
+    while (textWidth > 900 && fontSize > 50) {
+        fontSize -= 5;
+        ctx.font = `italic 700 ${fontSize}px "Playfair Display", serif`;
+        textWidth = ctx.measureText(userAlias).width;
+    }
+    
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'italic 700 110px "Playfair Display", serif';
+    ctx.fillText(userAlias, 540, 960);
     ctx.fillText(state.profile?.alias || 'The Stranger', 540, 960);
 
     let fileName = "";
