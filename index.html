@@ -2314,12 +2314,23 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
         "Atmosphäre statt Algorithmus."
     ];
 
+    // Der "Kartenstapel"
+    let claimStack = [];
     window.currentClaim = claims[0];
 
-    // Garantiert absolut keine direkte Wiederholung
-    function getNextClaim() {
-        const available = claims.filter(c => c !== window.currentClaim);
-        window.currentClaim = available[Math.floor(Math.random() * available.length)];
+    function getNextUniqueClaim() {
+        // Wenn der Stapel leer ist, füllen und neu mischen
+        if (claimStack.length === 0) {
+            claimStack = [...claims].sort(() => Math.random() - 0.5);
+            
+            // Sicherheit: Falls der erste neue Spruch der gleiche wie der letzte alte ist -> ans Ende schieben
+            if (claimStack[claimStack.length - 1] === window.currentClaim) {
+                claimStack.unshift(claimStack.pop());
+            }
+        }
+        
+        // Den nächsten Spruch vom Stapel ziehen
+        window.currentClaim = claimStack.pop();
         return window.currentClaim;
     }
 
@@ -2327,13 +2338,16 @@ const archivedDrops = state.allDrops.filter(d => d.eventTime <= sevenDaysAgo);
         const el = document.getElementById("rotating-claim");
         if (!el) return;
 
+        // Cineastischer Fade-Out
         el.style.transition = "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
         el.style.opacity = "0";
         el.style.filter = "blur(4px)";
         el.style.transform = "translateY(5px)";
 
         setTimeout(() => {
-            el.innerHTML = getNextClaim();
+            el.innerHTML = getNextUniqueClaim();
+            
+            // Cineastischer Fade-In
             el.style.opacity = "1";
             el.style.filter = "blur(0px)";
             el.style.transform = "translateY(0px)";
