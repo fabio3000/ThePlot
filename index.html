@@ -228,6 +228,8 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, collection, addDoc, onSnapshot, getDocs, updateDoc, deleteDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
+
         
         let apiKey = "";
         try {
@@ -404,54 +406,50 @@ window.verifyCode = async (e) => {
 window.generateShareCard = async (cardType = 'alias') => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 1080; canvas.height = 1920;
+    
+    // NEU: Dynamische Höhe basierend auf dem exakten Handy-Display des Users
+    const screenRatio = window.innerHeight / window.innerWidth;
+    canvas.width = 1080; 
+    canvas.height = 1080 * screenRatio; 
+
+    // Hilfsvariablen für perfekte Zentrierung auf jeder Bildschirmgröße
+    const centerY = canvas.height / 2;
+    const bottomY = canvas.height;
 
     const now = new Date();
     const currentYear = now.getFullYear();
     
     // 1. Hintergrund & Texturen
-    ctx.fillStyle = '#09090b'; ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = '#09090b'; ctx.fillRect(0, 0, 1080, canvas.height);
 
     ctx.globalAlpha = 0.15;
     for (let i = 0; i < 40000; i++) {
         ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
-        ctx.fillRect(Math.random() * 1080, Math.random() * 1920, 2, 2);
+        ctx.fillRect(Math.random() * 1080, Math.random() * canvas.height, 2, 2);
     }
     ctx.globalAlpha = 1.0;
 
-    const aura = ctx.createRadialGradient(540, 960, 0, 540, 960, 600);
+    const aura = ctx.createRadialGradient(540, centerY, 0, 540, centerY, 600);
     aura.addColorStop(0, 'rgba(251, 191, 36, 0.05)');
     aura.addColorStop(1, 'transparent');
-    ctx.fillStyle = aura; ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = aura; ctx.fillRect(0, 0, 1080, canvas.height);
 
-           // 2. Main Title (Gemeinsam) - Exaktes Logo-Matching
+    // 2. Main Title
     ctx.fillStyle = '#f4f4f5';
-    
-    // 900 erzwingt genau den gleichen massiven Faux-Bold-Effekt wie im HTML
     ctx.font = 'italic 900 85px "Playfair Display", serif'; 
-    
-    // Wendet dein exaktes Tracking (-0.05em) an
-    if (ctx.letterSpacing !== undefined) {
-        ctx.letterSpacing = "-0.05em";
-    }
-    
+    if (ctx.letterSpacing !== undefined) ctx.letterSpacing = "-0.05em";
     ctx.textAlign = 'center';
     
-    // Leerzeichen am Ende + kleine Verschiebung nach rechts (545), damit das 't' nicht abgeschnitten wird und alles perfekt zentriert bleibt
-    ctx.fillText('The Plot. ', 545, 300); 
+    // Dynamischer Abstand von oben
+    ctx.fillText('The Plot. ', 545, canvas.height * 0.15); 
 
-    // WICHTIG: Letter-Spacing sofort wieder zurücksetzen, damit der restliche Text auf dem Ticket (Alias, Ort etc.) normal lesbar bleibt!
-    if (ctx.letterSpacing !== undefined) {
-        ctx.letterSpacing = "0px";
-    }
+    if (ctx.letterSpacing !== undefined) ctx.letterSpacing = "0px";
 
-
-    // --- NEU: DYNAMISCHE SCHRIFTGRÖSSE FÜR DEN ALIAS ---
+    // Dynamische Schriftgröße für den Alias
     const userAlias = state.profile?.alias || 'The Stranger';
-    let fontSize = 110; // Startgröße
+    let fontSize = 110; 
     ctx.font = `italic 700 ${fontSize}px "Playfair Display", serif`;
     
-    // Messen, ob der Text breiter als 900px ist (Canvas Breite ist 1080px)
     let textWidth = ctx.measureText(userAlias).width;
     while (textWidth > 900 && fontSize > 50) {
         fontSize -= 5;
@@ -460,60 +458,50 @@ window.generateShareCard = async (cardType = 'alias') => {
     }
     
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(userAlias, 540, 960);
-    ctx.fillText(state.profile?.alias || 'The Stranger', 540, 960);
+    // Exakt in der Mitte platzieren
+    ctx.fillText(userAlias, 540, centerY);
 
     let fileName = "";
     let shareText = "";
 
-        // 3. Unterscheidung: Ticket-Trophäe vs. Basis-Alias
+    // 3. Unterscheidung: Ticket vs. Alias
     if (cardType === 'ticket' && state.currentDrop) {
-        // TICKET-MODUS (Mit echter Szene und Event-Datum!)
         const eventDate = new Date(state.currentDrop.eventTime);
         const formattedDate = eventDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        
-        // --- NEU: HIER FEHLTE DIE SZENEN-NUMMER ---
         const sceneNum = state.currentDrop.sceneNumber || '001';
-
-         // Findet das Ticket-Objekt im neuen Format { dropId, order }
+        
         const myTicket = state.profile?.tickets?.find(t => 
             (typeof t === 'string' ? t === state.currentDrop.id : t.dropId === state.currentDrop.id)
         );
+        const ticketNum = (myTicket && typeof myTicket === 'object' && myTicket.order) ? String(myTicket.order).padStart(3, '0') : '001';
 
-    
-    // Holt die Sequenznummer (order), falls vorhanden, sonst Fallback 001
-    const ticketNum = (myTicket && typeof myTicket === 'object' && myTicket.order) 
-        ? String(myTicket.order).padStart(3, '0') 
-        : '001';
-
-
-        ctx.fillStyle = '#d97706'; // Gold
+        ctx.fillStyle = '#d97706'; 
         ctx.font = '700 35px "Inter", sans-serif';
         ctx.letterSpacing = "15px";
-        ctx.fillText(`SCENE ${sceneNum} • TICKET ${ticketNum}`, 540, 1050);
+        ctx.fillText(`SCENE ${sceneNum} • TICKET ${ticketNum}`, 540, centerY + 90);
 
         ctx.fillStyle = '#3f3f46';
         ctx.letterSpacing = "3px";
         ctx.font = '700 28px "Inter", sans-serif';
-        ctx.fillText(`PRODUCED IN ${state.currentDrop.city.toUpperCase()} • ${currentYear}`, 540, 1750);
+        // Dynamisch von unten ausrichten
+        ctx.fillText(`PRODUCED IN ${state.currentDrop.city.toUpperCase()} • ${currentYear}`, 540, bottomY - 170);
         ctx.font = '400 22px "Inter", sans-serif';
-        ctx.fillText(`SCENE DATE: ${formattedDate} • ENTRANCE GRANTED`, 540, 1810);
+        ctx.fillText(`SCENE DATE: ${formattedDate} • ENTRANCE GRANTED`, 540, bottomY - 110);
 
         fileName = `ThePlot_Scene${sceneNum}_${(state.profile?.alias || 'Stranger').replace(/\s+/g, '')}.png`;
         shareText = `Entrance Granted: Scene ${sceneNum}.`;
     } else {
-        // ALIAS-MODUS (Aus den Einstellungen, neutral)
-        ctx.fillStyle = '#71717a'; // Grau
+        ctx.fillStyle = '#71717a'; 
         ctx.font = '400 35px "Inter", sans-serif';
         ctx.letterSpacing = "15px";
-        ctx.fillText('ROLE ASSIGNED', 540, 1050);
+        ctx.fillText('ROLE ASSIGNED', 540, centerY + 90);
 
         ctx.fillStyle = '#3f3f46';
         ctx.letterSpacing = "3px";
         ctx.font = '700 28px "Inter", sans-serif';
-        ctx.fillText(`PRODUCED IN ${(state.selectedCity || 'KÖLN').toUpperCase()} • ${currentYear}`, 540, 1750);
+        ctx.fillText(`PRODUCED IN ${(state.selectedCity || 'KÖLN').toUpperCase()} • ${currentYear}`, 540, bottomY - 170);
         ctx.font = '400 22px "Inter", sans-serif';
-        ctx.fillText(`ENTRANCE GRANTED`, 540, 1810);
+        ctx.fillText(`ENTRANCE GRANTED`, 540, bottomY - 110);
 
         fileName = `ThePlot_Alias_${(state.profile?.alias || 'Stranger').replace(/\s+/g, '')}.png`;
         shareText = 'My Role in The Plot.';
@@ -586,6 +574,29 @@ async function generateUniqueAlias() {
                     state.user = user;
                     if (user) {
                         clearListeners();
+
+const messaging = getMessaging(appInit);
+
+window.activatePager = async () => {
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            // WICHTIG: Hier kommt später dein VAPID Key aus der Firebase Console rein
+            const currentToken = await getToken(messaging, { vapidKey: 'BJIAt9hIFzh9RgSOJZQ09Ij0kZsczM21vHWTg6gbXVbuas6HgheNT3LHSy_pczB_U9tmFkJOPPwCFWOdqshkCrc' });
+            
+            if (currentToken && state.user) {
+                // Token im Profil speichern, damit du gezielt Nachrichten schicken kannst
+                await updateDoc(doc(db, 'plot_users', state.user.uid), { pushToken: currentToken });
+                window.showToast("Director's Pager aktiviert.", "success");
+            }
+        } else {
+            window.showToast("Benachrichtigungen abgelehnt. Du bleibst im Dunkeln.", "error");
+        }
+    } catch (err) {
+        window.showToast("Fehler beim Aktivieren. Bist du auf dem Home-Screen?", "error");
+    }
+};
+
 
                        const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), async (docSnap) => {
     if (docSnap.exists()) {
@@ -2662,25 +2673,31 @@ else if (state.view === 'onboarding') {
         return window.currentClaim;
     }
 
-    setInterval(() => {
+        setInterval(() => {
         const el = document.getElementById("rotating-claim");
         if (!el) return;
 
-        // Cineastischer Fade-Out
-        el.style.transition = "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+        // Cineastischer Fade-Out (ohne Blur, um Smartphone-Artefakte zu verhindern)
+        el.style.transition = "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)";
         el.style.opacity = "0";
-        el.style.filter = "blur(4px)";
         el.style.transform = "translateY(5px)";
+        el.style.willChange = "opacity, transform"; // Erzwingt sauberes Hardware-Rendering
 
         setTimeout(() => {
+            // Text im komplett unsichtbaren Zustand austauschen
             el.innerHTML = getNextUniqueClaim();
             
-            // Cineastischer Fade-In
-            el.style.opacity = "1";
-            el.style.filter = "blur(0px)";
-            el.style.transform = "translateY(0px)";
-        }, 800);
+            // 50ms warten, damit der Browser den neuen Text sicher gerendert hat
+            setTimeout(() => {
+                el.style.opacity = "1";
+                el.style.transform = "translateY(0px)";
+            }, 50);
+            
+        }, 600); // Exakt warten, bis der Fade-Out fertig ist
     }, 4500);
+
+
+
 </script>
 
 
