@@ -6,7 +6,7 @@
     <title>The Plot | Your life is a movie.</title>
         <link rel="icon" type="image/png" sizes="32x32" href="P.%20Logo.png?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="P.%20Logo.png?v=2">
-        <link rel="manifest" href="manifest.json">
+        <link rel="manifest" href="./manifest.json">
 
 
     <link rel="apple-touch-icon" href="The%20Plot.%20Logo.png?v=2">
@@ -1478,28 +1478,48 @@ try {
 
 
 
-        window.openPastChat = (dropId) => {
-            state.openChatId = dropId;
-            state.messages = []; 
-            if (window.unsubChat) window.unsubChat();
-            window.unsubChat = onSnapshot(collection(db, `plot_messages_${dropId}`), (msgSnap) => {
-                state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
-                render(); scrollToBottom();
-            });
-            render();
-        };
+     window.openPastChat = (dropId) => {
+    state.openChatId = dropId;
+    state.messages = []; 
+    if (window.unsubChat) window.unsubChat();
+
+    // NEU: Auch hier der Filter für das Archiv
+    const archiveQuery = query(collection(db, "messages"), where("dropId", "==", dropId));
+
+    window.unsubChat = onSnapshot(archiveQuery, (msgSnap) => {
+        state.messages = msgSnap.docs.map(d => d.data()).sort((a,b) => a.timestamp - b.timestamp);
+        render(); scrollToBottom();
+    });
+    render();
+};
+
 
         window.sendMessage = async (dropIdOverride = null) => {
     const idToUse = dropIdOverride || state.currentDrop?.id;
-    const input = document.getElementById('chat_input'); const text = input.value.trim();
+    const input = document.getElementById('chat_input'); 
+    const text = input.value.trim();
+    
     if (!text || !idToUse) return;
+    
     try {
-        await addDoc(collection(db, `plot_messages_${idToUse}`), { senderId: state.user.uid, senderAlias: state.profile?.alias || 'Stranger', text: text, timestamp: Date.now(), isSystem: false });
+        // NEU: Zentraler Pfad "messages" + dropId Feld
+        await addDoc(collection(db, "messages"), { 
+            senderId: state.user.uid, 
+            senderAlias: state.profile?.alias || 'Stranger', 
+            text: text, 
+            dropId: idToUse, // EXTREM WICHTIG für den Server-Push!
+            timestamp: Date.now(), 
+            isSystem: false 
+        });
+        
         input.value = ''; 
-        input.blur(); // <-- Tastatur schließen, damit die neuen Nachrichten laden
+        input.blur(); 
         scrollToBottom();
-    } catch (e) { window.showToast("Failed to send.", "error"); }
+    } catch (e) { 
+        window.showToast("Failed to send.", "error"); 
+    }
 };
+
 
                 // --- BERGHAIN: VIBE CHECK ---
         window.openVibeCheck = () => { state.showVibeCheck = true; render(); };
