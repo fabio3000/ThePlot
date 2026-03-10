@@ -377,24 +377,24 @@ window.sendSMS = async (e) => {
 
 
 window.verifyCode = async (e) => {
-
     e.preventDefault();
-
     const btn = document.getElementById('verify_submit_btn');
-
     const code = document.getElementById('auth_code').value;
 
     btn.disabled = true;
     btn.innerText = "Checking...";
 
     try {
-
         await window.confirmationResult.confirm(code);
+        
+        // NEU: Captcha zerstören, sobald der Code stimmt
+        if (window.recaptchaVerifier) {
+            window.recaptchaVerifier.clear();
+            window.recaptchaVerifier = null;
+        }
 
     } catch (err) {
-
         window.showToast("Invalid code.", "error");
-
         btn.disabled = false;
         btn.innerText = "Verify";
     }
@@ -1069,12 +1069,20 @@ window.setSocialBattery = async (level) => {
 
         
         window.handleLogout = () => { 
-            state.showSettings = false; 
-            state.view = 'loading'; 
-            render();
-            signOut(auth); 
-            window.showToast("Logged out.", "info"); 
-        };
+    state.showSettings = false; 
+    state.view = 'loading'; 
+    render();
+    signOut(auth); 
+    
+    // NEU: Captcha-Speicher leeren
+    if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+    }
+    
+    window.showToast("Logged out.", "info"); 
+};
+
         
         window.resetPassword = async () => {
             if(!state.user) return;
@@ -1973,10 +1981,11 @@ html += `
 <div class="text-center mb-10">
 <h1 class="text-4xl serif italic mb-3">Real connections.</h1>
 
-<p class="text-zinc-400 text-sm m-0 w-full mb-8">
+<p id="rotating-claim" class="text-zinc-400 text-sm m-0 w-full mb-8 min-h-[60px] flex items-center justify-center transition-all duration-800">
 Keine Bots. Keine Fake-Profile.<br>
 Nur echte Menschen im echten Leben.
 </p>
+
 
 </div>
 
