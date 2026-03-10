@@ -6,7 +6,7 @@
     <title>The Plot | Your life is a movie.</title>
         <link rel="icon" type="image/png" sizes="32x32" href="P.%20Logo.png?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="P.%20Logo.png?v=2">
-        <link rel="manifest" href="manifest.json">
+        <link rel="manifest" href="./manifest.json">
 
 
     <link rel="apple-touch-icon" href="The%20Plot.%20Logo.png?v=2">
@@ -583,26 +583,34 @@ window.activatePager = async () => {
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            // WICHTIG: Hier kommt später dein VAPID Key aus der Firebase Console rein
-            const currentToken = await getToken(messaging, { vapidKey: 'BJIAt9hIFzh9RgSOJZQ09Ij0kZsczM21vHWTg6gbXVbuas6HgheNT3LHSy_pczB_U9tmFkJOPPwCFWOdqshkCrc' });
+            
+            window.showToast("Pager wird kalibriert...", "info");
+
+            // NEU 1: Wir registrieren den Service Worker manuell für GitHub Pages
+            const swRegistration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+
+            // NEU 2: Wir übergeben diese Registrierung an Firebase
+            const currentToken = await getToken(messaging, { 
+                vapidKey: 'BJIAt9hIFzh9RgSOJZQ09Ij0kZsczM21vHWTg6gbXVbuas6HgheNT3LHSy_pczB_U9tmFkJOPPwCFWOdqshkCrc',
+                serviceWorkerRegistration: swRegistration
+            });
             
             if (currentToken && state.user) {
-                // Token im Profil speichern, damit du gezielt Nachrichten schicken kannst
                 await updateDoc(doc(db, 'plot_users', state.user.uid), { pushToken: currentToken });
-                window.showToast("Director's Pager aktiviert.", "success");
+                window.showToast("Director's Pager aktiv. Du empfängst Signale.", "success");
+            } else {
+                window.showToast("Konnte kein Token generieren.", "error");
             }
         } else {
             window.showToast("Benachrichtigungen abgelehnt. Du bleibst im Dunkeln.", "error");
         }
     } catch (err) {
-        window.showToast("Fehler beim Aktivieren. Bist du auf dem Home-Screen?", "error");
+        console.error("Pager Error:", err);
+        // NEU 3: Wir lassen uns den exakten Systemfehler anzeigen
+        window.showToast("Fehler: " + err.message, "error");
     }
 };
 
-onMessage(messaging, (payload) => {
-    // Wenn die App offen ist, taucht die Pager-Nachricht als Toast auf
-    window.showToast(`DIRECTOR: ${payload.notification.body}`, "info");
-});
 
 
                        const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), async (docSnap) => {
