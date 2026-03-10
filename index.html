@@ -176,6 +176,8 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
 <body class="flex flex-col relative">
     <div class="film-grain"></div>
     <div id="toast-container"></div>
+    
+    <div id="recaptcha-container"></div> 
 
     <div id="app" class="flex-1 flex flex-col pb-24 z-10 relative">
         <div class="text-center mt-40 flex flex-col items-center">
@@ -324,9 +326,14 @@ window.sendSMS = async (e) => {
     e.preventDefault();
 
     const btn = document.getElementById('auth_submit_btn');
-    const phone = document.getElementById('auth_phone').value;
+    const prefix = document.getElementById('auth_prefix').value;
+    const rawPhone = document.getElementById('auth_phone').value.trim();
+    
+    // Sicherheit: Entfernt eine eventuelle "0" am Anfang der Handynummer
+    const cleanPhone = rawPhone.replace(/^0+/, '');
+    const fullPhone = prefix + cleanPhone;
 
-    state.tempPhone = phone;
+    state.tempPhone = fullPhone; // Speichert die korrekte, volle Nummer für den nächsten Screen
 
     btn.disabled = true;
     btn.innerText = "Sending...";
@@ -578,25 +585,34 @@ async function generateUniqueAlias() {
                     if (user) {
                         clearListeners();
 
-                        const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), (docSnap) => {
-                            if (docSnap.exists()) {
-                                state.profile = docSnap.data();
-                                state.selectedCity = state.profile.city || state.selectedCity;
-                                if (state.view === 'loading') state.view = 'home'; 
-                                checkRouting();
-                                render(true);
-                            } else if (!isRegistering) {
-                                state.profile = { 
-                                    hasPremium: false, tickets: [], completedDrops: [], 
-                                    alias: "The Stranger", isAdmin: false, city: state.selectedCity,
-                                    extraTickets: 0, monthlyTicketsUsed: 0
-                                };
-                                setDoc(doc(db, 'plot_users', user.uid), state.profile);
-                                state.view = 'home';
-                                render(true);
-                            }
-                        });
-                        unsubs.push(unsubProfile);
+                       const unsubProfile = onSnapshot(doc(db, 'plot_users', user.uid), async (docSnap) => {
+    if (docSnap.exists()) {
+        // Bekannter User -> Profil laden
+        state.profile = docSnap.data();
+        state.selectedCity = state.profile.city || state.selectedCity;
+        if (state.view === 'loading' || state.view === 'auth') state.view = 'home'; 
+        checkRouting();
+        render(true);
+    } else {
+        // Profil existiert noch nicht -> Frischer Cast!
+        const newAlias = await generateUniqueAlias();
+        state.profile = { 
+            hasPremium: false, 
+            tickets: [], 
+            completedDrops: [], 
+            alias: newAlias, 
+            isAdmin: false, 
+            city: state.selectedCity || "Köln",
+            extraTickets: 0, 
+            monthlyTicketsUsed: 0
+        };
+        
+        await setDoc(doc(db, 'plot_users', user.uid), state.profile);
+        window.showToast(`Rolle zugewiesen: ${newAlias}`, "success");
+        state.view = 'home';
+        render(true);
+    }
+});
 
                                                 const unsubDrops = onSnapshot(collection(db, 'plot_drops'), (snap) => {
                             const allDrops = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -891,6 +907,12 @@ window.setSocialBattery = async (level) => {
         let startY = 0;
         let dragEl = null;
         let isStub = false;
+        
+        window.goBackToPhone = () => { 
+    state.authStep = 'phone'; 
+    render(); 
+};
+
         
     window.startTear = (e) => {
     window.isTicketAnimating = true; // <-- Lock für render() aktivieren
@@ -1957,20 +1979,28 @@ Nur echte Menschen im echten Leben.
 
 </div>
 
-<div id="recaptcha-container"></div>
+
 
 ${state.authStep === 'phone' ? `
 
 <form onsubmit="window.sendSMS(event)" class="space-y-4">
 
-<input
-id="auth_phone"
-type="tel"
-placeholder="+49 170 1234567"
-required
-value="${state.tempPhone || ''}"
-class="w-full p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition text-center text-xl tracking-widest"
->
+<div class="flex gap-2">
+    <select id="auth_prefix" class="w-24 p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-400 text-center text-lg font-bold appearance-none cursor-pointer">
+        <option value="+49">🇩🇪 +49</option>
+        <option value="+43">🇦🇹 +43</option>
+        <option value="+41">🇨🇭 +41</option>
+    </select>
+    
+    <input
+        id="auth_phone"
+        type="tel"
+        placeholder="170 1234567"
+        required
+        class="flex-1 p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl outline-none focus:border-amber-500/50 text-zinc-200 transition text-center text-xl tracking-widest"
+    >
+</div>
+
 
 <button
 id="auth_submit_btn"
@@ -2019,14 +2049,11 @@ Verify
 
 </button>
 
-<button
-type="button"
-onclick="state.authStep='phone'; render();"
-class="w-full text-center mt-4 text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">
 
-Back
-
+<button type="button" onclick="window.goBackToPhone()" class="w-full text-center mt-4 text-xs text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition">
+    Back
 </button>
+
 
 </form>
 
