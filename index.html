@@ -55,6 +55,18 @@ h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
     pointer-events: none; z-index: 10; mix-blend-mode: multiply; border-radius: inherit; 
 }
 
+.grecaptcha-badge { 
+    /* Invertiert Weiß zu Schwarz und passt die Farben dem Dark Mode an */
+    filter: invert(1) grayscale(0.2) opacity(0.3); 
+    transition: all 0.5s ease !important;
+    bottom: 20px !important; /* Etwas Abstand vom Rand */
+}
+
+.grecaptcha-badge:hover {
+    filter: invert(1) grayscale(0) opacity(0.8);
+}
+
+
 /* --- TICKET-SYSTEM --- */
 .ticket-wrapper { 
     display: flex; 
@@ -329,17 +341,16 @@ window.sendSMS = async (e) => {
     const prefix = document.getElementById('auth_prefix').value;
     const rawPhone = document.getElementById('auth_phone').value.trim();
     
-    // Sicherheit: Entfernt eine eventuelle "0" am Anfang der Handynummer
     const cleanPhone = rawPhone.replace(/^0+/, '');
     const fullPhone = prefix + cleanPhone;
 
-    state.tempPhone = fullPhone; // Speichert die korrekte, volle Nummer für den nächsten Screen
+    state.tempPhone = fullPhone;
 
     btn.disabled = true;
     btn.innerText = "Sending...";
 
     try {
-
+        // Wird nur beim allerersten Klick erstellt, danach wiederverwendet
         if (!window.recaptchaVerifier) {
             window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
                 size: 'invisible'
@@ -348,32 +359,22 @@ window.sendSMS = async (e) => {
 
         window.confirmationResult = await signInWithPhoneNumber(
             auth,
-            fullPhone, // <-- Hier stand vorher 'phone'
+            fullPhone,
             window.recaptchaVerifier
         );
 
-
         state.authStep = 'code';
-
         window.showToast("SMS sent.", "success");
-
         render();
 
     } catch (err) {
-
-        console.error(err);
-
         window.showToast(err.message, "error");
-
         btn.disabled = false;
         btn.innerText = "Send Code";
-
-        if (window.recaptchaVerifier) {
-            window.recaptchaVerifier.clear();
-            window.recaptchaVerifier = null;
-        }
+        // WICHTIG: Das Captcha wird hier bei einem Fehler nicht mehr gelöscht!
     }
 };
+
 
 
 window.verifyCode = async (e) => {
