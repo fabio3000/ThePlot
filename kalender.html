@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Plot | Story Poster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            /* Hintergrund für den Desktop, damit die Story in der Mitte gut aussieht */
+            background-image: radial-gradient(circle at 50% 50%, #18181b 0%, #000 100%);
+        }
+        h1, h2, .serif { font-family: 'Playfair Display', serif; }
+        
+        /* Das exakte Instagram Story Format (9:16) */
+        .story-poster {
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 9 / 16;
+            background: #09090b;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .gold-text {
+            background: linear-gradient(to right, #fbbf24, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .glow-circle {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(217,119,6,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="story-poster p-6">
+        <div class="noise-overlay"></div>
+        <div class="glow-circle"></div>
+        
+        <!-- Header -->
+        <div class="text-center mt-8 mb-8 relative z-10">
+            <h1 class="text-4xl serif italic gold-text mb-2">The Plot.</h1>
+            <p class="text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold">Social Balance • April</p>
+            <p class="text-xs text-zinc-500 mt-2 italic">4 Wege zu echten Verbindungen.</p>
+        </div>
+
+        <!-- Event List -->
+        <div class="flex-1 flex flex-col justify-center relative z-10 gap-3">
+            
+            <!-- Event 1: Bar -->
+            <div class="bg-zinc-900/40 border border-zinc-800/60 p-4 rounded-2xl">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Woche 1 • Bar</div>
+                    <div class="text-[9px] uppercase tracking-widest text-amber-600 font-bold bg-amber-900/20 px-2 py-0.5 rounded">Deep Talk</div>
+                </div>
+                <h2 class="text-xl serif italic text-zinc-100 mb-1">Midnight Lounge</h2>
+                <p class="text-[11px] text-zinc-400 leading-snug">Schwaches Licht senkt den Puls. Perfekt für verletzliche Gespräche ohne Bewertungsdruck.</p>
+            </div>
+
+            <!-- Event 2: Crafting -->
+            <div class="bg-zinc-900/40 border border-zinc-800/60 p-4 rounded-2xl">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Woche 2 • Craft</div>
+                    <div class="text-[9px] uppercase tracking-widest text-emerald-600 font-bold bg-emerald-900/20 px-2 py-0.5 rounded">Cortisol Drop</div>
+                </div>
+                <h2 class="text-xl serif italic text-zinc-100 mb-1">Töpfern & Talk</h2>
+                <p class="text-[11px] text-zinc-400 leading-snug">Nebeneinander arbeiten nimmt den Druck aus dem ständigen Augenkontakt. Stressfreies Kennenlernen.</p>
+            </div>
+
+            <!-- Event 3: Café -->
+            <div class="bg-zinc-900/40 border border-zinc-800/60 p-4 rounded-2xl">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Woche 3 • Café</div>
+                    <div class="text-[9px] uppercase tracking-widest text-blue-500 font-bold bg-blue-900/20 px-2 py-0.5 rounded">Low Battery</div>
+                </div>
+                <h2 class="text-xl serif italic text-zinc-100 mb-1">Silent Reading</h2>
+                <p class="text-[11px] text-zinc-400 leading-snug">Für stille Beobachter. Zusammen allein sein schafft sichere Nähe ganz ohne Smalltalk-Zwang.</p>
+            </div>
+
+            <!-- Event 4: Aktiv -->
+            <div class="bg-zinc-900/40 border border-zinc-800/60 p-4 rounded-2xl">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Woche 4 • Walk</div>
+                    <div class="text-[9px] uppercase tracking-widest text-purple-500 font-bold bg-purple-900/20 px-2 py-0.5 rounded">Active Focus</div>
+                </div>
+                <h2 class="text-xl serif italic text-zinc-100 mb-1">Analog Camera Walk</h2>
+                <p class="text-[11px] text-zinc-400 leading-snug">Gemeinsame Bewegung (Walk & Talk) löst körperliche Anspannung und verbindet über einen geteilten Fokus.</p>
+            </div>
+
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6 mb-2 relative z-10 flex flex-col items-center gap-2">
+            <span class="text-[10px] uppercase tracking-widest text-zinc-300 font-bold bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-full">Screenshot to Save</span>
+            <span class="text-[9px] uppercase tracking-widest text-zinc-600 font-bold mt-2">theplot.app</span>
+        </div>
+    </div>
+
+</body>
+</html>
+
+
